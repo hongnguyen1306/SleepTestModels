@@ -8,7 +8,7 @@ import sklearn.metrics as skmetrics
 import torch
 from models.pytorch_models.Tiny_models.model import Model
 from models.pytorch_models.Tiny_models.network import TinySleepNet
-from dataloader.dataloader_tiny import load_data, get_subject_files
+from dataloader.dataloader_tiny import load_data
 from models.pytorch_models.Tiny_models.minibatching import (iterate_batch_multiple_seq_minibatches)
 from config_files.pytorch_configs.tiny_configs import predict
 
@@ -48,6 +48,7 @@ def predict(
     output_dir,
     log_file,
     use_best=True,
+    act_func='ReLU',
 ):
 
     spec = importlib.util.spec_from_file_location("*", config_file)
@@ -66,8 +67,6 @@ def predict(
 
     trues = []
     preds = []
-    s_trues = []
-    s_preds = []
 
     device = torch.device("cuda:{}".format(args.gpu) if torch.cuda.is_available() else "cpu")
     model = Model(
@@ -76,7 +75,8 @@ def predict(
         use_rnn=True,
         testing=True,
         use_best=use_best,
-        device=device
+        device=device,
+        act_func = act_func
     )
 
 
@@ -102,7 +102,8 @@ def predict(
     acc = skmetrics.accuracy_score(y_true=trues, y_pred=preds)
     f1_score = skmetrics.f1_score(y_true=trues, y_pred=preds, average="weighted")
     cm = skmetrics.confusion_matrix(y_true=trues, y_pred=preds, labels=[0,1,2,3,4])
-    
+    print("Test mf1: ", f1_score, "\t | \tTest Accuracy: ",acc)
+
     preds = np.array(preds)
     trues = np.array(trues)
     preds = preds.astype(int)
@@ -110,19 +111,14 @@ def predict(
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):
-        # Lấy chỉ mục các mẫu thuộc nhãn label
         indices = np.where(trues == label)[0]
-        
-        # Đếm số lượng dự đoán đúng cho nhãn label
         correct_predictions = np.sum(preds[indices.astype(int)] == trues[indices.astype(int)])
-        
-        # Tính tỉ lệ dự đoán đúng
         accuracy[label] = correct_predictions / len(indices)
 
     # In kết quả
     print("=====         TinySleepNet        =====")
     for label, acc in accuracy.items():
-        print(f"Nhãn {label}: Tỉ lệ dự đoán đúng = {acc}")
+        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
 
     # print("")
     # print("=====         Tinysleep        =====")

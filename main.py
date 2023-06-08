@@ -13,7 +13,8 @@ import models.pytorch_models.Attn_models.model as module_arch
 from models.pytorch_models.TS_models.model import base_Model
 from config_files.pytorch_configs.attn_configs import ConfigParser
 from config_files.pytorch_configs.TCC_configs import Config as Configs
-from tiny_test import predict
+from tiny_test import predict as predict_tiny
+from deepsleep_test import predict as predict_deepsleep
 
 start_time = datetime.now()
 
@@ -53,7 +54,7 @@ def model_evaluate(model, test_dl, device, method):
     total_loss = torch.tensor(total_loss).mean()
     total_acc = torch.tensor(total_acc).mean()
 
-    print(f"Test loss: {total_loss.item():.4f}\t | \tTest Accuracy: {total_acc.item():.4f}")
+    print("Test loss: ", total_loss, "\t | \tTest Accuracy: ",total_acc)
 
     # Chuyển đổi các mảng thành kiểu dữ liệu integer
     outs = outs.astype(int)
@@ -62,35 +63,42 @@ def model_evaluate(model, test_dl, device, method):
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):
-        # Lấy chỉ mục các mẫu thuộc nhãn label
         indices = np.where(trgs == label)[0]
-        
-        # Đếm số lượng dự đoán đúng cho nhãn label
         correct_predictions = np.sum(outs[indices] == trgs[indices])
-        
-        # Tính tỉ lệ dự đoán đúng
         accuracy[label] = correct_predictions / len(indices)
 
     # In kết quả
     for label, acc in accuracy.items():
-        print(f"Nhãn {label}: Tỉ lệ dự đoán đúng = {acc}")
+        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
 
     return total_loss, total_acc, outs, trgs
 
-def load_model_CA(test_dl, base_path):
-    configs = Configs()
-
+def load_model_TCC(test_dl, base_path, method, act_func):
     # Load the model
-    model = base_Model(configs).to(device)
-    # E:\TestModels\input\exp5CAGELU\run_1\supervised_seed_123\saved_models\model_epoch_19.pt
-    # Load the saved checkpoint
-    load_from =  'TestModels/input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
-    checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_19.pt"), map_location=device)
-
+    configs = Configs()
+    model = base_Model(configs, activation_func=act_func).to(device)
+    if act_func == 'ReLU':
+        if method == 'TS':
+            print("======         TS TCC Sleep         ======")
+            load_from = "TestModels/input/mode_TS"
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_25_ReLU.pt"), map_location=device)
+        else:
+            print("======         CA TCC Sleep         ======")
+            load_from =  'TestModels/input/exp3CA/run_1/supervised_seed_123/saved_models/'
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_19.pt"), map_location=device)
+        
+    if act_func == 'GELU':
+        if method == 'TS':
+            print("======         TS TCC Sleep         ======")
+            load_from = "TestModels/input/mode_TS"
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_17_GELU.pt"), map_location=device)
+        else:
+            print("======         CA TCC Sleep         ======")
+            load_from =  'TestModels/input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_22.pt"), map_location=device)
+    
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-
-    print("======         TS TCC Sleep         ======")
     total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
     
     return total_loss, total_acc, outs, trgs
@@ -120,7 +128,6 @@ def load_model_Attn(test_dl, base_path):
     options = []
     fold_id = 1
 
-    
     config = ConfigParser.from_args(args, fold_id, options)
     model = config.init_obj('arch', module_arch)
 
@@ -138,14 +145,30 @@ def load_model_Attn(test_dl, base_path):
 
     return total_loss, total_acc, outs, trgs
 
-def load_model_Tiny(test_dl, base_path):
+def load_model_Tiny(test_dl, base_path, act_func):
 
-    predict(
+    if act_func == 'ReLU':
+        model_path = "TestModels/input/attn81.9ReLU"
+    else:
+        model_path = "TestModels/input/BestModelGELU"
+    predict_tiny(
         config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
-        model_dir=str(os.path.join(base_path, "input/81.9")),
-        output_dir=str(os.path.join(base_path, "TestModels/input/81.9")),
+        model_dir=str(os.path.join(base_path, model_path)),
+        output_dir=str(os.path.join(base_path, model_path)),
         log_file='output.log',
         use_best=False,
+        act_func = act_func
+    )
+
+def load_model_Deepsleep(test_dl, base_path):
+    n_subjects = 1
+    n_subjects_per_fold = 1
+    predict_deepsleep(
+        data_dir=str(os.path.join(base_path,"TestModels/data")),
+        model_dir=str(os.path.join(base_path, "TestModels")),
+        output_dir=str(os.path.join(base_path, "TestModels")),
+        n_subjects=n_subjects,
+        n_subjects_per_fold=n_subjects_per_fold
     )
 
 if __name__ == "__main__":
@@ -158,7 +181,16 @@ if __name__ == "__main__":
     test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_4072.pt")))
 
 
-    total_loss, total_acc, outs, trgs = load_model_CA(test_dl, base_path)
+    print("*****    ReLU    ******")
+    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='ReLU')
+    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='ReLU')
+    
+    print("*****    GELU    ******")
+    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU')
+    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU')
+    
     total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
-    load_model_Tiny(test_dl, base_path)
+    load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
+    load_model_Tiny(test_dl, base_path, act_func = 'GELU')
+    load_model_Deepsleep(test_dl, base_path)
 

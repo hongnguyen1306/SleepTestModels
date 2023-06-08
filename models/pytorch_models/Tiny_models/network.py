@@ -4,7 +4,7 @@ from collections import OrderedDict
 import warnings
 
 class TinySleepNet(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, act_func):
         super(TinySleepNet, self).__init__()
         self.padding_edf = {  # same padding in tensorflow
             'conv1': (22, 22),
@@ -15,51 +15,99 @@ class TinySleepNet(nn.Module):
         self.config = config
         first_filter_size = int(self.config["sampling_rate"] / 2.0)  # 100/2 = 50, 与以往使用的Resnet相比，这里的卷积核更大
         first_filter_stride = int(self.config["sampling_rate"] / 16.0)  # todo 与论文不同，论文给出的stride是100/4=25
-        self.cnn = nn.Sequential(
-            nn.ConstantPad1d(self.padding_edf['conv1'], 0),  # conv1
-            nn.Sequential(OrderedDict([
-                ('conv1', nn.Conv1d(in_channels=1, out_channels=128, kernel_size=first_filter_size, stride=first_filter_stride,
-                      bias=False))
-            ])),
-            # nn.BatchNorm1d(128),
-            # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
-            nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True),
-            nn.ConstantPad1d(self.padding_edf['max_pool1'], 0),  # max p 1
-            nn.MaxPool1d(kernel_size=8, stride=8),
-            nn.Dropout(p=0.5),
-            nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv2
-            nn.Sequential(OrderedDict([
-                ('conv2',
-                 nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
-            ])),
-            # nn.BatchNorm1d(128),
-            # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
-            nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+        print("\n**** act_func Tiny", act_func)
+        if act_func == 'ReLU':
+            self.cnn = nn.Sequential(
+                nn.ConstantPad1d(self.padding_edf['conv1'], 0),  # conv1
+                nn.Sequential(OrderedDict([
+                    ('conv1', nn.Conv1d(in_channels=1, out_channels=128, kernel_size=first_filter_size, stride=first_filter_stride,
+                        bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+                nn.ReLU(inplace=True),
+                nn.ConstantPad1d(self.padding_edf['max_pool1'], 0),  # max p 1
+                nn.MaxPool1d(kernel_size=8, stride=8),
+                nn.Dropout(p=0.5),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv2
+                nn.Sequential(OrderedDict([
+                    ('conv2',
+                    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
 
-            nn.ReLU(inplace=True),
-            nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv3
-            nn.Sequential(OrderedDict([
-                ('conv3',nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
-            ])),
-            # nn.BatchNorm1d(128),
-            # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
-            nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+                nn.ReLU(inplace=True),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv3
+                nn.Sequential(OrderedDict([
+                    ('conv3',nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
 
-            nn.ReLU(inplace=True),
-            nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv4
-            nn.Sequential(OrderedDict([
-                ('conv4', nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
-            ])),
-            # nn.BatchNorm1d(128),
-            # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
-            nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True),
-            nn.ConstantPad1d(self.padding_edf['max_pool2'], 0),  # max p 2
-            nn.MaxPool1d(kernel_size=4, stride=4),
-            nn.Flatten(),
-            nn.Dropout(p=0.5),
-        )
+                nn.ReLU(inplace=True),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv4
+                nn.Sequential(OrderedDict([
+                    ('conv4', nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+                nn.ReLU(inplace=True),
+                nn.ConstantPad1d(self.padding_edf['max_pool2'], 0),  # max p 2
+                nn.MaxPool1d(kernel_size=4, stride=4),
+                nn.Flatten(),
+                nn.Dropout(p=0.5),
+            )
+        else:
+            self.cnn = nn.Sequential(
+                nn.ConstantPad1d(self.padding_edf['conv1'], 0),  # conv1
+                nn.Sequential(OrderedDict([
+                    ('conv1', nn.Conv1d(in_channels=1, out_channels=128, kernel_size=first_filter_size, stride=first_filter_stride,
+                        bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+                nn.GELU(),
+                nn.ConstantPad1d(self.padding_edf['max_pool1'], 0),  # max p 1
+                nn.MaxPool1d(kernel_size=8, stride=8),
+                nn.Dropout(p=0.5),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv2
+                nn.Sequential(OrderedDict([
+                    ('conv2',
+                    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+
+                nn.GELU(),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv3
+                nn.Sequential(OrderedDict([
+                    ('conv3',nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+
+                nn.GELU(),
+                nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv4
+                nn.Sequential(OrderedDict([
+                    ('conv4', nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
+                ])),
+                # nn.BatchNorm1d(128),
+                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
+                nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
+                nn.GELU(),
+                nn.ConstantPad1d(self.padding_edf['max_pool2'], 0),  # max p 2
+                nn.MaxPool1d(kernel_size=4, stride=4),
+                nn.Flatten(),
+                nn.Dropout(p=0.5),
+            )
         # self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1, dropout=0.5)
         # self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1)
         self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1, batch_first=True)

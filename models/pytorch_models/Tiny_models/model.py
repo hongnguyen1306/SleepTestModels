@@ -12,14 +12,13 @@ logger = logging.getLogger("default_log")
 
 
 class Model:
-    def __init__(self, config=None, output_dir="output", use_rnn=False, testing=True, use_best=True, device=None):
-        self.tsn = TinySleepNet(config)
+    def __init__(self, config=None, output_dir="output", use_rnn=False, testing=True, use_best=True, device=None, act_func='ReLU'):
+        self.tsn = TinySleepNet(config, act_func=act_func)
         self.config = config
         self.output_dir = output_dir
         self.checkpoint_path = os.path.join(self.output_dir, "checkpoint")
         self.best_ckpt_path = os.path.join(self.output_dir, "best_ckpt")
         self.weights_path = os.path.join(self.output_dir, "weights")
-        self.log_dir = os.path.join(self.output_dir, "log")
         self.device = device
         self.tsn.to(device)
 
@@ -27,9 +26,6 @@ class Model:
             lr=config['learning_rate'], betas=(config["adam_beta_1"], config["adam_beta_2"]),
             eps=config["adam_epsilon"])
         self.CE_loss = nn.CrossEntropyLoss(reduce=False)
-
-        self.train_writer = SummaryWriter(os.path.join(self.log_dir, "train"))
-        self.train_writer.add_graph(self.tsn, input_to_model=(torch.rand(size=(self.config['batch_size']*self.config['seq_length'], 1, 3000)).to(device), (torch.zeros(size=(1, self.config['batch_size'], 128)).to(device), torch.zeros(size=(1, self.config['batch_size'], 128)).to(device))))
         self.global_epoch = 0
         self.global_step = 0
 
@@ -40,7 +36,6 @@ class Model:
         # print("=================load best model from best_ckpt_path ", best_ckpt_path)
         best_ckpt_path = os.path.join(self.output_dir, "best_model.ckpt")
         self.tsn.load_state_dict(torch.load(best_ckpt_path, map_location=torch.device('cpu')))
-        logger.info(f'load best model from {best_ckpt_path}')
         print("load best model from best_ckpt_path ", best_ckpt_path)
 
 
@@ -73,7 +68,6 @@ class Model:
                 w = w.to(self.device)
 
                 # summary(self.tsn, x, state)
-                # exit(0)
                 y_pred, state = self.tsn.forward(x, state)
                 state = (state[0].detach(), state[1].detach())
                 loss = self.CE_loss(y_pred, y)
@@ -95,7 +89,7 @@ class Model:
                     trues.extend(tmp_trues[i, :sl[i]])
         acc = skmetrics.accuracy_score(y_true=trues, y_pred=preds)
         all_loss = np.array(losses).mean()
-        f1_score = skmetrics.f1_score(y_true=trues, y_pred=preds, average="macro")
+        f1_score = skmetrics.f1_score(y_true=trues, y_pred=preds, average="weighted")
         cm = skmetrics.confusion_matrix(y_true=trues, y_pred=preds, labels=[0, 1, 2, 3, 4])
         stop = timeit.default_timer()
         duration = stop - start
@@ -110,12 +104,12 @@ class Model:
         }
         return outputs
 
-    def save_best_checkpoint(self, name):
-        if not os.path.exists(self.best_ckpt_path):
-            os.makedirs(self.best_ckpt_path)
-        save_path = os.path.join(self.best_ckpt_path, "{}.ckpt".format(name))
-        torch.save(self.tsn.state_dict(), save_path)
-        logger.info("Saved best checkpoint to {}".format(save_path))
+    # def save_best_checkpoint(self, name):
+    #     if not os.path.exists(self.best_ckpt_path):
+    #         os.makedirs(self.best_ckpt_path)
+    #     save_path = os.path.join(self.best_ckpt_path, "{}.ckpt".format(name))
+    #     torch.save(self.tsn.state_dict(), save_path)
+    #     logger.info("Saved best checkpoint to {}".format(save_path))
 
 
 

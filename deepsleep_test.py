@@ -31,27 +31,18 @@ def print_performance(sess, network_name, n_examples, duration, loss, cm, acc, f
     reg_loss_value = sess.run(reg_loss)
 
     # Print performance
-    print((
-        "duration={:.3f} sec, n={}, loss={:.3f} ({:.3f}), acc={:.3f}, "
-        "f1={:.3f}".format(
-            duration, n_examples, loss, reg_loss_value, acc, f1
-        )
-    ))
-    print(cm)
-    print(" ")
+    # print((
+    #     "duration={:.3f} sec, n={}, loss={:.3f} ({:.3f}), acc={:.3f}, "
+    #     "f1={:.3f}".format(
+    #         duration, n_examples, loss, reg_loss_value, acc, f1
+    #     )
+    # ))
+    # print(cm)
+    # print(" ")
 
 
 def _reverse_seq(input_seq, lengths):
-    """Reverse a list of Tensors up to specified lengths.
-    Args:
-        input_seq: Sequence of seq_len tensors of dimension (batch_size, n_features)
-                   or nested tuples of tensors.
-        lengths:   A `Tensor` of dimension batch_size, containing lengths for each
-                   sequence in the batch. If "None" is specified, simply reverses
-                   the list.
-    Returns:
-        time-reversed sequence
-    """
+
     if lengths is None:
         return list(reversed(input_seq))
 
@@ -87,56 +78,6 @@ def _reverse_seq(input_seq, lengths):
 
 def custom_rnn(cell, inputs, initial_state=None, dtype=None,
                sequence_length=None, scope=None):
-    """Creates a recurrent neural network specified by RNNCell `cell`.
-    The simplest form of RNN network generated is:
-    ```python
-        state = cell.zero_state(...)
-        outputs = []
-        for input_ in inputs:
-            output, state = cell(input_, state)
-            outputs.append(output)
-        return (outputs, state)
-    ```
-    However, a few other options are available:
-    An initial state can be provided.
-    If the sequence_length vector is provided, dynamic calculation is performed.
-    This method of calculation does not compute the RNN steps past the maximum
-    sequence length of the minibatch (thus saving computational time),
-    and properly propagates the state at an example's sequence length
-    to the final state output.
-    The dynamic calculation performed is, at time `t` for batch row `b`,
-    ```python
-        (output, state)(b, t) =
-            (t >= sequence_length(b))
-                ? (zeros(cell.output_size), states(b, sequence_length(b) - 1))
-                : cell(input(b, t), state(b, t - 1))
-    ```
-    Args:
-        cell: An instance of RNNCell.
-        inputs: A length T list of inputs, each a `Tensor` of shape
-            `[batch_size, input_size]`, or a nested tuple of such elements.
-        initial_state: (optional) An initial state for the RNN.
-            If `cell.state_size` is an integer, this must be
-            a `Tensor` of appropriate type and shape `[batch_size, cell.state_size]`.
-            If `cell.state_size` is a tuple, this should be a tuple of
-            tensors having shapes `[batch_size, s] for s in cell.state_size`.
-        dtype: (optional) The data type for the initial state and expected output.
-            Required if initial_state is not provided or RNN state has a heterogeneous
-            dtype.
-        sequence_length: Specifies the length of each sequence in inputs.
-            An int32 or int64 vector (tensor) size `[batch_size]`, values in `[0, T)`.
-        scope: VariableScope for the created subgraph; defaults to "RNN".
-    Returns:
-        A pair (outputs, state) where:
-        - outputs is a length T list of outputs (one for each input), or a nested
-            tuple of such elements.
-        - state is the final state
-    Raises:
-        TypeError: If `cell` is not an instance of RNNCell.
-        ValueError: If `inputs` is `None` or an empty list, or if the input depth
-            (column size) cannot be inferred from inputs via shape inference.
-    """
-
     if not isinstance(cell, tf.compat.v1.nn.rnn_cell.RNNCell):
         raise TypeError("cell must be an instance of RNNCell")
     if not nest.is_sequence(inputs):
@@ -146,9 +87,7 @@ def custom_rnn(cell, inputs, initial_state=None, dtype=None,
 
     outputs = []
     states = []
-    # Create a new scope in which the caching device is either
-    # determined by the parent scope, or is set to place the cached
-    # Variable using the same placement as for the rest of the RNN.
+
     with vs.variable_scope(scope or "RNN") as varscope:
         if varscope.caching_device is None:
             varscope.set_caching_device(lambda op: op.device)
@@ -529,19 +468,19 @@ def custom_run_epoch(
         y.append(each_y_pred)
         y_true.append(each_y_true)
 
-    # Save memory cells and predictions
-    save_dict = {
-        "fw_memory_cells": fw_memory_cells,
-        "bw_memory_cells": bw_memory_cells,
-        "y_true": y_true,
-        "y_pred": y
-    }
-    save_path = os.path.join(
-        output_dir,
-        "output_subject{}.npz".format(subject_idx)
-    )
-    np.savez(save_path, **save_dict)
-    print("Saved outputs to {}".format(save_path))
+    # # Save memory cells and predictions
+    # save_dict = {
+    #     "fw_memory_cells": fw_memory_cells,
+    #     "bw_memory_cells": bw_memory_cells,
+    #     "y_true": y_true,
+    #     "y_pred": y
+    # }
+    # save_path = os.path.join(
+    #     output_dir,
+    #     "output_subject{}.npz".format(subject_idx)
+    # )
+    # np.savez(save_path, **save_dict)
+    # print("Saved outputs to {}".format(save_path))
 
     duration = time.time() - start_time
     total_loss /= n_batches
@@ -589,7 +528,7 @@ def predict(
             saver = tf.compat.v1.train.Saver()
             saver.restore(sess, '/home/rosa/DeepSleepModels/model_fold0.ckpt-60') 
             # saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
-            # print("Model restored from: {}\n".format(checkpoint_path))
+            print("Model restored from: {}\n".format(checkpoint_path))
             print("Model restored from: {}\n".format(
                 tf.train.latest_checkpoint(checkpoint_path)))
 
@@ -634,27 +573,24 @@ def predict(
     n_examples = len(y_true)
     cm = confusion_matrix(y_true, y_pred)
     acc = np.mean(y_true == y_pred)
-    mf1 = f1_score(y_true, y_pred, average="macro")
-    print((
-        "n={}, acc={:.3f}, f1={:.3f}".format(
-            n_examples, acc, mf1
-        )
-    ))
-    print(cm)
+    mf1 = f1_score(y_true, y_pred, average="weighted")
+    print("Test mf1: ", mf1, "\t | \tTest Accuracy: ",acc)
+    # print((
+    #     "n={}, acc={:.3f}, f1={:.3f}".format(
+    #         n_examples, acc, mf1
+    #     )
+    # ))
+    # print(cm)
+    preds = y_pred.astype(int)
+    trues = y_true.astype(int)
+    # Tính tỉ lệ dự đoán đúng cho từng nhãn
+    accuracy = {}
+    for label in range(5):
+        indices = np.where(trues == label)[0]
+        correct_predictions = np.sum(preds[indices.astype(int)] == trues[indices.astype(int)])
+        accuracy[label] = correct_predictions / len(indices)
 
-
-def main(argv=None):
-    # Output dir
-    n_subjects = 1
-    n_subjects_per_fold = 1
-    predict(
-        data_dir="/home/rosa/TestModels/data",
-        model_dir="/home/rosa/TestModels",
-        output_dir="/home/rosa/TestModels",
-        n_subjects=n_subjects,
-        n_subjects_per_fold=n_subjects_per_fold
-    )
-
-
-if __name__ == "__main__":
-    tf.compat.v1.app.run()
+    # In kết quả
+    print("=====         DeepSleepNet        =====")
+    for label, acc in accuracy.items():
+        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
