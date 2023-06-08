@@ -8,7 +8,6 @@ import sklearn.metrics as skmetrics
 import torch
 from models.pytorch_models.Tiny_models.model import Model
 from models.pytorch_models.Tiny_models.network import TinySleepNet
-
 from dataloader.dataloader_tiny import load_data, get_subject_files
 from models.pytorch_models.Tiny_models.minibatching import (iterate_batch_multiple_seq_minibatches)
 from config_files.pytorch_configs.tiny_configs import predict
