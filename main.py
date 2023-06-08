@@ -168,7 +168,8 @@ def load_model_Deepsleep(test_dl, base_path):
         model_dir=str(os.path.join(base_path, "TestModels")),
         output_dir=str(os.path.join(base_path, "TestModels")),
         n_subjects=n_subjects,
-        n_subjects_per_fold=n_subjects_per_fold
+        n_subjects_per_fold=n_subjects_per_fold,
+        base_path=base_path
     )
 
 if __name__ == "__main__":

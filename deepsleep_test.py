@@ -495,7 +495,8 @@ def predict(
     model_dir,
     output_dir,
     n_subjects,
-    n_subjects_per_fold
+    n_subjects_per_fold,
+    base_path
 ):
     # Ground truth and predictions
     y_true = []
@@ -524,9 +525,9 @@ def predict(
             fold_idx = subject_idx // n_subjects_per_fold
 
             # Restore the trained model
-            checkpoint_path = "/home/rosa/DeepSleepModels"
+            checkpoint_path = str(os.path.join(base_path, "TestModels/input/DeepSleepModels"))
             saver = tf.compat.v1.train.Saver()
-            saver.restore(sess, '/home/rosa/DeepSleepModels/model_fold0.ckpt-60') 
+            saver.restore(sess, str(os.path.join(checkpoint_path, 'model_fold0.ckpt-60')))
             # saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
             print("Model restored from: {}\n".format(checkpoint_path))
             print("Model restored from: {}\n".format(
