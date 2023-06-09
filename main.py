@@ -151,7 +151,7 @@ def load_model_Tiny(test_dl, base_path, act_func):
         model_path = "TestModels/input/attn81.9ReLU"
     else:
         model_path = "TestModels/input/BestModelGELU"
-    predict_tiny(
+    acc, f1_score, cm = predict_tiny(
         config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
         model_dir=str(os.path.join(base_path, model_path)),
         output_dir=str(os.path.join(base_path, model_path)),
@@ -159,11 +159,12 @@ def load_model_Tiny(test_dl, base_path, act_func):
         use_best=False,
         act_func = act_func
     )
+    return acc, f1_score, cm
 
 def load_model_Deepsleep(test_dl, base_path):
     n_subjects = 1
     n_subjects_per_fold = 1
-    predict_deepsleep(
+    acc, mf1, cm = predict_deepsleep(
         data_dir=str(os.path.join(base_path,"TestModels/data")),
         model_dir=str(os.path.join(base_path, "TestModels")),
         output_dir=str(os.path.join(base_path, "TestModels")),
