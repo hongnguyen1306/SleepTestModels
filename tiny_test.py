@@ -119,6 +119,8 @@ def predict(
     print("=====         TinySleepNet        =====")
     for label, acc in accuracy.items():
         print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
+        
+    return acc, f1_score, cm
 
     # print("")
     # print("=====         Tinysleep        =====")

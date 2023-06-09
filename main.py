@@ -101,7 +101,7 @@ def load_model_TCC(test_dl, base_path, method, act_func):
     model.eval()
     total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
     
-    return total_loss, total_acc, outs, trgs
+    return total_acc, outs, trgs
 
 def load_model_Attn(test_dl, base_path):
     # fix random seeds for reproducibility
@@ -143,7 +143,7 @@ def load_model_Attn(test_dl, base_path):
     print("======          ATTN Sleep         ======")
     total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'Attn')
 
-    return total_loss, total_acc, outs, trgs
+    return total_acc, outs, trgs
 
 def load_model_Tiny(test_dl, base_path, act_func):
 
@@ -172,26 +172,27 @@ def load_model_Deepsleep(test_dl, base_path):
         base_path=base_path
     )
 
-if __name__ == "__main__":
-    # root
-    base_path = "/home/rosa"
+# def main():
+#     # root
+#     base_path = "/home/rosa"
+
+#     # Load datasets
+#     data_path = str(os.path.join(base_path,"TestModels/data"))
+#     test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_data.pt")))
 
 
-    # Load datasets
-    data_path = str(os.path.join(base_path,"TestModels/data"))
-    test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_4072.pt")))
-
-
-    print("*****    ReLU    ******")
-    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='ReLU')
-    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='ReLU')
+#     print("*****    ReLU    ******")
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='ReLU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='ReLU')
     
-    print("*****    GELU    ******")
-    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU')
-    total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU')
+#     print("*****    GELU    ******")
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU')
     
-    total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
-    load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
-    load_model_Tiny(test_dl, base_path, act_func = 'GELU')
-    load_model_Deepsleep(test_dl, base_path)
+#     total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
+#     load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
+#     load_model_Tiny(test_dl, base_path, act_func = 'GELU')
+#     load_model_Deepsleep(test_dl, base_path)
+
+
 

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tải file EDF</title>
+</head>
+<body>
+  <div>
+	<form action="/test" method="POST" enctype="multipart/form-data">
+		<label for="edf_file">Chọn file npz:</label>
+		<input type="file" id="edf_file" name="file">
+		<input type="submit" value="Tải lên">
+	</form>
+
+     <br>
+   <br>
+   {{ result_CA }}
+   <br>
+   {{result_TS}}
+  </div>
+</body>
+</html>

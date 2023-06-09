@@ -595,3 +595,5 @@ def predict(
     print("=====         DeepSleepNet        =====")
     for label, acc in accuracy.items():
         print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
+
+    return acc, mf1, cm
