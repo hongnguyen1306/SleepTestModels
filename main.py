@@ -172,6 +172,7 @@ def load_model_Deepsleep(test_dl, base_path):
         n_subjects_per_fold=n_subjects_per_fold,
         base_path=base_path
     )
+    return acc, mf1, cm
 
 # def main():
 #     # root
