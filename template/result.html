@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kết quả phân loại giấc ngủ</title>
+</head>
+<body>
+    <h1>Kết quả phân loại giấc ngủ</h1>
+    {% for file in image_names %}
+        {% if file.endswith('acc.png') %}
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        {% endif %}
+    {% endfor %}
+    <br>
+    {% for file in image_names %}
+        {% if file.endswith('raw_edf.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+    {% endfor %}
+    <br>
+    {% for file in image_names %}
+        {% if file.endswith('true_line.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+    {% endfor %}
+    <br>
+    <div style="display: flex;">
+        {% for file in image_names %}
+            {% if file.endswith('TS_pre_line.png') %}
+                <div>
+                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+                </div>
+            {% endif %}
+
+            {% if file.endswith('CA_pre_line.png') %}
+                <div>
+                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>

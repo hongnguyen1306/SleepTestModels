@@ -54,6 +54,12 @@ def model_evaluate(model, test_dl, device, method):
     total_loss = torch.tensor(total_loss).mean()
     total_acc = torch.tensor(total_acc).mean()
 
+    # Áp dụng phép làm tròn
+    total_acc = round(total_acc.item() * 100, 2)
+    total_loss = round(total_loss.item() * 100, 2)
+
+
+
     print("Test loss: ", total_loss, "\t | \tTest Accuracy: ",total_acc)
 
     # Chuyển đổi các mảng thành kiểu dữ liệu integer
@@ -148,7 +154,7 @@ def load_model_Attn(test_dl, base_path):
 def load_model_Tiny(test_dl, base_path, act_func):
 
     if act_func == 'ReLU':
-        model_path = "TestModels/input/attn81.9ReLU"
+        model_path = "TestModels/input/tiny81.9ReLU"
     else:
         model_path = "TestModels/input/BestModelGELU"
     acc, f1_score, cm = predict_tiny(
