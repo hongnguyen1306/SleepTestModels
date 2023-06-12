@@ -17,11 +17,11 @@ from tensorflow.python.ops import variable_scope as vs
 from tensorflow.python.util import nest
 
 from dataloader.dataloader_deepsleep import SeqDataLoader
-from models.Deepsleep_models.model import DeepSleepNet
+from models.Deepsleep_models.model import DeepSleepNet, DeepSleepNetNoLabels
 from models.Deepsleep_models.nn import *
 from models.Deepsleep_models.sleep_stage import (NUM_CLASSES,
                                    EPOCH_SEC_LEN)
-from models.Deepsleep_models.utils import iterate_batch_seq_minibatches
+from models.Deepsleep_models.utils import iterate_batch_seq_minibatches, iterate_batch_nolabels
 
 
 def print_performance(sess, network_name, n_examples, duration, loss, cm, acc, f1):
@@ -226,7 +226,6 @@ def custom_bidirectional_rnn(cell_fw, cell_bw, inputs,
 
     return (outputs, output_state_fw, output_state_bw, fw_states, bw_states)
 
-
 class CustomDeepSleepNet(DeepSleepNet):
 
     def __init__(
@@ -371,6 +370,150 @@ class CustomDeepSleepNet(DeepSleepNet):
         return network
 
 
+
+class CustomDeepSleepNetNoLabels(DeepSleepNetNoLabels):
+
+    def __init__(
+        self,
+        batch_size,
+        input_dims,
+        n_classes,
+        seq_length,
+        n_rnn_layers,
+        return_last,
+        is_train,
+        reuse_params,
+        use_dropout_feature,
+        use_dropout_sequence,
+        name="deepsleepnet"
+    ):
+        super(DeepSleepNetNoLabels, self).__init__(
+            batch_size=batch_size,
+            input_dims=input_dims,
+            n_classes=n_classes,
+            is_train=is_train,
+            reuse_params=reuse_params,
+            use_dropout=use_dropout_feature,
+            name=name
+        )
+
+        self.seq_length = seq_length
+        self.n_rnn_layers = n_rnn_layers
+        self.return_last = return_last
+
+        self.use_dropout_sequence = use_dropout_sequence
+
+    def build_model(self, input_var):
+        # Create a network with superclass method
+        network = super(DeepSleepNetNoLabels, self).build_model(
+            input_var=self.input_var
+        )
+
+        # Residual (or shortcut) connection
+        output_conns = []
+
+        # Fully-connected to select some part of the output to add with the output from bi-directional LSTM
+        name = "l{}_fc".format(self.layer_idx)
+        with tf.compat.v1.variable_scope(name) as scope:
+            output_tmp = fc(name="fc", input_var=network,
+                            n_hiddens=1024, bias=None, wd=0)
+            output_tmp = batch_norm_new(
+                name="bn", input_var=output_tmp, is_train=self.is_train)
+            output_tmp = tf.nn.relu(output_tmp, name="relu")
+        self.activations.append((name, output_tmp))
+        self.layer_idx += 1
+        output_conns.append(output_tmp)
+
+        ######################################################################
+
+        # Reshape the input from (batch_size * seq_length, input_dim) to
+        # (batch_size, seq_length, input_dim)
+        name = "l{}_reshape_seq".format(self.layer_idx)
+        input_dim = network.get_shape()[-1].value
+        seq_input = tf.reshape(network,
+                               shape=[-1, self.seq_length, input_dim],
+                               name=name)
+        assert self.batch_size == seq_input.get_shape()[0].value
+        self.activations.append((name, seq_input))
+        self.layer_idx += 1
+
+        # Bidirectional LSTM network
+        name = "l{}_bi_lstm".format(self.layer_idx)
+        hidden_size = 512   # will output 1024 (512 forward, 512 backward)
+        with tf.compat.v1.variable_scope(name) as scope:
+
+            def lstm_cell():
+                cell = tf.compat.v1.nn.rnn_cell.LSTMCell(hidden_size,
+                                                         use_peepholes=True,
+                                                         state_is_tuple=True,
+                                                         reuse=tf.compat.v1.get_variable_scope().reuse)
+                if self.use_dropout_sequence:
+                    keep_prob = 0.5 if self.is_train else 1.0
+                    cell = tf.compat.v1.nn.rnn_cell.DropoutWrapper(
+                        cell,
+                        output_keep_prob=keep_prob
+                    )
+
+                return cell
+
+            fw_cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell(
+                [lstm_cell() for _ in range(self.n_rnn_layers)], state_is_tuple=True)
+            bw_cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell(
+                [lstm_cell() for _ in range(self.n_rnn_layers)], state_is_tuple=True)
+
+            # Initial state of RNN
+            self.fw_initial_state = fw_cell.zero_state(
+                self.batch_size, tf.float32)
+            self.bw_initial_state = bw_cell.zero_state(
+                self.batch_size, tf.float32)
+
+            # Feedforward to MultiRNNCell
+            list_rnn_inputs = tf.unstack(seq_input, axis=1)
+            outputs, fw_state, bw_state, fw_states, bw_states = custom_bidirectional_rnn(
+                cell_fw=fw_cell,
+                cell_bw=bw_cell,
+                inputs=list_rnn_inputs,
+                initial_state_fw=self.fw_initial_state,
+                initial_state_bw=self.bw_initial_state
+            )
+
+            if self.return_last:
+                network = outputs[-1]
+            else:
+                network = tf.reshape(tf.concat(axis=1, values=outputs), [-1, hidden_size*2],
+                                     name=name)
+            self.activations.append((name, network))
+            self.layer_idx += 1
+
+            self.fw_final_state = fw_state
+            self.bw_final_state = bw_state
+
+            self.fw_states = fw_states
+            self.bw_states = bw_states
+
+        # Append output
+        output_conns.append(network)
+
+        ######################################################################
+
+        # Add
+        name = "l{}_add".format(self.layer_idx)
+        network = tf.add_n(output_conns, name=name)
+        self.activations.append((name, network))
+        self.layer_idx += 1
+
+        # Dropout
+        if self.use_dropout_sequence:
+            name = "l{}_dropout".format(self.layer_idx)
+            if self.is_train:
+                network = tf.nn.dropout(network, keep_prob=0.5, name=name)
+            else:
+                network = tf.nn.dropout(network, keep_prob=1.0, name=name)
+            self.activations.append((name, network))
+        self.layer_idx += 1
+
+        return network
+
 def custom_run_epoch(
     sess,
     network,
@@ -490,7 +633,120 @@ def custom_run_epoch(
     return total_y_true, total_y_pred, total_loss, duration
 
 
-def predict(
+
+def custom_run_epoch_nolabels(
+    sess,
+    network,
+    inputs,
+    train_op,
+    output_dir,
+    subject_idx
+):
+    start_time = time.time()
+    y = []
+    y_true = []
+    all_fw_memory_cells = []
+    all_bw_memory_cells = []
+    total_loss, n_batches = 0.0, 0
+    for sub_f_idx, each_data in enumerate(inputs):
+        each_x = each_data
+
+        # # Initialize state of LSTM - Unidirectional LSTM
+        # state = sess.run(network.initial_state)
+
+        # Initialize state of LSTM - Bidirectional LSTM
+        fw_state = sess.run(network.fw_initial_state)
+        bw_state = sess.run(network.bw_initial_state)
+
+        # Prepare storage for memory cells
+        n_all_data = len(each_x)
+        extra = n_all_data % network.seq_length
+        n_data = n_all_data - extra
+        cell_size = 512
+        fw_memory_cells = np.zeros((n_data, network.n_rnn_layers, cell_size))
+        bw_memory_cells = np.zeros((n_data, network.n_rnn_layers, cell_size))
+        seq_idx = 0
+
+        # Store prediction and actual stages of each patient
+        each_y_pred = []
+
+        for x_batch in iterate_batch_nolabels(inputs=each_x,
+                                              batch_size=network.batch_size,
+                                            seq_length=network.seq_length):
+            feed_dict = {
+                network.input_var: x_batch,
+            }
+
+            # Unidirectional LSTM
+            # for i, (c, h) in enumerate(network.initial_state):
+            #     feed_dict[c] = state[i].c
+            #     feed_dict[h] = state[i].h
+
+            # _, loss_value, y_pred, state = sess.run(
+            #     [train_op, network.loss_op, network.pred_op, network.final_state],
+            #     feed_dict=feed_dict
+            # )
+
+            for i, (c, h) in enumerate(network.fw_initial_state):
+                feed_dict[c] = fw_state[i].c
+                feed_dict[h] = fw_state[i].h
+
+            for i, (c, h) in enumerate(network.bw_initial_state):
+                feed_dict[c] = bw_state[i].c
+                feed_dict[h] = bw_state[i].h
+
+            _, loss_value, y_pred, fw_state, bw_state = sess.run(
+                [train_op, network.loss_op, network.pred_op,
+                    network.fw_final_state, network.bw_final_state],
+                feed_dict=feed_dict
+            )
+
+            # Extract memory cells
+            fw_states = sess.run(network.fw_states, feed_dict=feed_dict)
+            bw_states = sess.run(network.bw_states, feed_dict=feed_dict)
+            offset_idx = seq_idx * network.seq_length
+            for s_idx in range(network.seq_length):
+                for r_idx in range(network.n_rnn_layers):
+                    fw_memory_cells[offset_idx +
+                                    s_idx][r_idx] = np.squeeze(fw_states[s_idx][r_idx].c)
+                    bw_memory_cells[offset_idx +
+                                    s_idx][r_idx] = np.squeeze(bw_states[s_idx][r_idx].c)
+            seq_idx += 1
+            each_y_pred.extend(y_pred)
+
+            total_loss += loss_value
+            n_batches += 1
+
+            # Check the loss value
+            assert not np.isnan(loss_value), \
+                "Model diverged with loss = NaN"
+
+        all_fw_memory_cells.append(fw_memory_cells)
+        all_bw_memory_cells.append(bw_memory_cells)
+        y.append(each_y_pred)
+
+    # # Save memory cells and predictions
+    # save_dict = {
+    #     "fw_memory_cells": fw_memory_cells,
+    #     "bw_memory_cells": bw_memory_cells,
+    #     "y_true": y_true,
+    #     "y_pred": y
+    # }
+    # save_path = os.path.join(
+    #     output_dir,
+    #     "output_subject{}.npz".format(subject_idx)
+    # )
+    # np.savez(save_path, **save_dict)
+    # print("Saved outputs to {}".format(save_path))
+
+    duration = time.time() - start_time
+    total_loss /= n_batches
+    total_y_pred = np.hstack(y)
+
+    return total_y_pred, total_loss, duration
+
+
+def predict_deepsleep(
     data_dir,
     model_dir,
     output_dir,
@@ -498,7 +754,7 @@ def predict(
     n_subjects_per_fold,
     base_path
 ):
-    # Ground truth and predictions
+       # Ground truth and predictions
     y_true = []
     y_pred = []
 
@@ -555,7 +811,7 @@ def predict(
             n_examples = len(y_true_)
             cm_ = confusion_matrix(y_true_, y_pred_)
             acc_ = np.mean(y_true_ == y_pred_)
-            mf1_ = f1_score(y_true_, y_pred_, average="macro")
+            mf1_ = f1_score(y_true_, y_pred_, average="weighted")
 
             # Report performance
             print_performance(
@@ -574,8 +830,9 @@ def predict(
     n_examples = len(y_true)
     cm = confusion_matrix(y_true, y_pred)
     acc = np.mean(y_true == y_pred)
-    mf1 = f1_score(y_true, y_pred, average="weighted")
-    print("Test mf1: ", mf1, "\t | \tTest Accuracy: ",acc)
+    f1 = f1_score(y_true, y_pred, average="weighted")
+    
+    print("Test f1: ", f1, "\t | \tTest Accuracy: ",acc)
     # print((
     #     "n={}, acc={:.3f}, f1={:.3f}".format(
     #         n_examples, acc, mf1
@@ -596,4 +853,83 @@ def predict(
     for label, acc in accuracy.items():
         print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
 
-    return acc, mf1, cm
+    return acc, f1, preds
+
+
+def predict_deepsleep_nolabels(
+    data_dir,
+    model_dir,
+    output_dir,
+    n_subjects,
+    n_subjects_per_fold,
+    base_path
+):
+    # Ground truth and predictions
+    y_true = []
+    y_pred = []
+
+    # The model will be built into the default Graph
+    with tf.Graph().as_default(), tf.compat.v1.Session() as sess:
+        # Build the network
+        valid_net = CustomDeepSleepNetNoLabels(
+            batch_size=1,
+            input_dims=EPOCH_SEC_LEN*100,
+            n_classes=NUM_CLASSES,
+            seq_length=25,
+            n_rnn_layers=2,
+            return_last=False,
+            is_train=False,
+            reuse_params=False,
+            use_dropout_feature=True,
+            use_dropout_sequence=True
+        )
+
+        # Initialize parameters
+        valid_net.init_ops()
+
+        for subject_idx in range(n_subjects):
+            fold_idx = subject_idx // n_subjects_per_fold
+
+            # Restore the trained model
+            checkpoint_path = str(os.path.join(base_path, "TestModels/input/DeepSleepModels"))
+            saver = tf.compat.v1.train.Saver()
+            saver.restore(sess, str(os.path.join(checkpoint_path, 'model_fold0.ckpt-60')))
+            # saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
+            print("Model restored from: {}\n".format(checkpoint_path))
+            print("Model restored from: {}\n".format(
+                tf.train.latest_checkpoint(checkpoint_path)))
+
+            # Load testing data
+            x = SeqDataLoader.load_subject_nolabels(
+                data_dir=data_dir,
+                subject_idx=subject_idx
+            )
+
+            # Loop each epoch
+            print("[{}] Predicting ...\n".format(datetime.now()))
+
+            # Evaluate the model on the subject data
+            y_pred_, loss, duration = \
+                custom_run_epoch_nolabels(
+                    sess=sess, network=valid_net,
+                    inputs=x,
+                    train_op=tf.no_op(),
+                    # is_train=False,
+                    output_dir=output_dir,
+                    subject_idx=subject_idx
+                )
+
+            y_pred.extend(y_pred_)
+
+    # Overall performance
+    y_pred = np.asarray(y_pred)
+    # print((
+    #     "n={}, acc={:.3f}, f1={:.3f}".format(
+    #         n_examples, acc, mf1
+    #     )
+    # ))
+    # print(cm)
+    preds = y_pred.astype(int)
+
+    return preds
+

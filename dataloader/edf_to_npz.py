@@ -17,7 +17,6 @@ import numpy as np
 from mne.io import read_raw_edf
 
 from dataloader import dhedfreader
-from dataloader.generate import generate
 
 
 
@@ -196,6 +195,7 @@ def EdfToNpz(base_path, data_dir):
         select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
+        print("***** edfnpz x  ", x )
         y = y[select_idx]
         print(("Data after selection: {}, {}".format(x.shape, y.shape)))
 
@@ -212,5 +212,62 @@ def EdfToNpz(base_path, data_dir):
         }
         np.savez(os.path.join(args.output_dir, filename), **save_dict)
 
-if __name__ == "__main__":
-    EdfToNpz()
+
+def EdfToNpz_NoLabels(base_path, data_dir):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"TestModels/data")),
+                        help="Directory where to save outputs.")
+    parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
+                        help="File path to the trained model used to estimate walking speeds.")
+    args = parser.parse_args()
+
+    # Select channel
+    select_ch = args.select_ch
+
+    # Read raw and annotation EDF files
+    psg_fnames = glob.glob(os.path.join(base_path, data_dir, "*PSG.edf"))
+    psg_fnames.sort()
+    psg_fnames = np.asarray(psg_fnames)
+
+    for i in range(len(psg_fnames)):
+        raw = read_raw_edf(psg_fnames[i], preload=True, stim_channel=None)
+        sampling_rate = raw.info['sfreq']
+        raw_ch_df = raw.to_data_frame(scaling_time=100.0)[select_ch]
+        raw_ch_df = raw_ch_df.to_frame()
+        raw_ch_df.set_index(np.arange(len(raw_ch_df)))
+        # Get raw header
+        f = open(psg_fnames[i], 'r', encoding='iso-8859-1')
+        reader_raw = dhedfreader.BaseEDFReader(f)
+        reader_raw.read_header()
+        h_raw = reader_raw.header
+        f.close()
+
+        select_idx = np.arange(len(raw_ch_df))
+        raw_ch = raw_ch_df.values[select_idx]
+
+        # Verify that we can split into 30-s epochs
+        if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
+            raise Exception("Something wrong")
+        n_epochs = len(raw_ch) / (EPOCH_SEC_SIZE * sampling_rate)
+
+        # Get epochs and their corresponding labels
+        x = np.asarray(np.split(raw_ch, n_epochs)).astype(np.float32)
+
+        # Select on sleep periods
+        start_idx = 0
+        end_idx = len(x) - 1
+        select_idx = np.arange(start_idx, end_idx+1)
+        x = x[select_idx]
+        print(" *** x = x[select_idx] ", x)
+        print(("Data after selection: {}".format(x.shape)))
+
+        # Save
+        filename = ntpath.basename("test_data").replace("-PSG.edf", ".npz")
+
+        save_dict = {
+            "x": x,
+            "fs": sampling_rate,
+            "ch_label": select_ch,
+            "header_raw": h_raw,
+        }
+        np.savez(os.path.join(args.output_dir, filename), **save_dict)

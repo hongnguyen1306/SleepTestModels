@@ -62,13 +62,13 @@ class Model:
                     state = (state[0].to(self.device), state[1].to(self.device))
 
                 # Carry the states from the previous batches through time  # 在测试时,将上一批样本的lstm状态带入下一批样本
-
                 x = x.to(self.device)
                 y = y.to(self.device)
                 w = w.to(self.device)
-
+            
                 # summary(self.tsn, x, state)
                 y_pred, state = self.tsn.forward(x, state)
+
                 state = (state[0].detach(), state[1].detach())
                 loss = self.CE_loss(y_pred, y)
                 # weight by sample
@@ -83,6 +83,7 @@ class Model:
                 losses.append(loss.detach().cpu().numpy())
                 tmp_preds = np.reshape(np.argmax(y_pred.cpu().detach().numpy(), axis=1),
                                        (self.config["batch_size"], self.config["seq_length"]))
+                
                 tmp_trues = np.reshape(y.cpu().detach().numpy(), (self.config["batch_size"], self.config["seq_length"]))
                 for i in range(self.config["batch_size"]):
                     preds.extend(tmp_preds[i, :sl[i]])
@@ -100,6 +101,41 @@ class Model:
             "test/accuracy": acc,
             "test/f1_score": f1_score,
             "test/cm": cm,
+            "test/duration": duration,
+        }
+        return outputs
+    
+    def predict_with_dataloader(self, minibatches):
+        self.tsn.eval()
+        start = timeit.default_timer()
+        preds, outputs = ([], {})
+        with torch.no_grad():
+            for x, w, sl, re in minibatches:
+                # print(">>>> 113 re nolabels", re)
+                x = torch.from_numpy(x).view(self.config['batch_size'] * self.config['seq_length'], 1,
+                                             3000)  # shape(batch_size* seq_length, in_channels, input_length)
+                w = torch.from_numpy(w)
+
+                if re:
+                    state = (torch.zeros(size=(1, self.config['batch_size'], self.config['n_rnn_units'])),
+                             torch.zeros(size=(1, self.config['batch_size'], self.config['n_rnn_units'])))
+                    state = (state[0].to(self.device), state[1].to(self.device))
+
+                # Carry the states from the previous batches through time  # 在测试时,将上一批样本的lstm状态带入下一批样本
+                x = x.to(self.device)
+                w = w.to(self.device)
+
+                y_pred, state = self.tsn.forward(x, state)
+                state = (state[0].detach(), state[1].detach())
+                tmp_preds = np.reshape(np.argmax(y_pred.cpu().detach().numpy(), axis=1),
+                                       (self.config["batch_size"], self.config["seq_length"]))
+                
+                for i in range(self.config["batch_size"]):
+                    preds.extend(tmp_preds[i, :sl[i]])
+        stop = timeit.default_timer()
+        duration = stop - start
+        outputs = {
+            "test/preds": preds,
             "test/duration": duration,
         }
         return outputs

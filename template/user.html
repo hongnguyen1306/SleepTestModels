@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Kết quả nhận biết các giai đoạn giấc ngủ</h1>
+    {% for file in image_names %}
+        {% if file.endswith('TS-TCC.png') %}
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        {% endif %}
+        <br>
+        {% if file.endswith('CA-TCC.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('Attn.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('TinySleepNet.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('DeepSleepNet.png') %}
+            <div>
+                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            </div>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>

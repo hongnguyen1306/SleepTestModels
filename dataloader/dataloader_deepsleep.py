@@ -117,3 +117,49 @@ class SeqDataLoader(object):
         data, labels = load_npz_list_files(subject_files)
 
         return data, labels
+    
+    @staticmethod
+    def load_subject_nolabels(data_dir, subject_idx):
+        # Remove non-mat files, and perform ascending sort
+        subject_files = []
+        subject_files = glob.glob(data_dir + "/*.npz")
+        # subject_files.append(npz_file)
+        
+        if len(subject_files) == 0 or len(subject_files) > 2:
+            raise Exception("Invalid file pattern")
+
+        def load_npz_file(npz_file):
+            """Load data and labels from a npz file."""
+            with np.load(npz_file) as f:
+                data = f["x"]
+                sampling_rate = f["fs"]
+            return data, sampling_rate
+
+        def load_npz_list_files(npz_files):
+            """Load data and labels from list of npz files."""
+            data = []
+            fs = None
+            for npz_f in npz_files:
+                tmp_data, sampling_rate = load_npz_file(npz_f)
+                if fs is None:
+                    fs = sampling_rate
+                elif fs != sampling_rate:
+                    raise Exception("Found mismatch in sampling rate.")
+
+                # Reshape the data to match the input of the model - conv2d
+                tmp_data = np.squeeze(tmp_data)
+                tmp_data = tmp_data[:, :, np.newaxis, np.newaxis]
+                
+                # # Reshape the data to match the input of the model - conv1d
+                # tmp_data = tmp_data[:, :, np.newaxis]
+
+                # Casting
+                tmp_data = tmp_data.astype(np.float32)
+
+                data.append(tmp_data)
+
+            return data
+
+        data = load_npz_list_files(subject_files)
+
+        return data

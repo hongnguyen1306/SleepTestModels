@@ -126,6 +126,27 @@ def iterate_batch_seq_minibatches(inputs, targets, batch_size, seq_length):
         flatten_y = y.reshape((-1,) + targets.shape[1:])
         yield flatten_x, flatten_y
 
+def iterate_batch_nolabels(inputs, batch_size, seq_length):
+    n_inputs = len(inputs)
+    batch_len = n_inputs // batch_size
+
+    epoch_size = batch_len // seq_length
+    if epoch_size == 0:
+        raise ValueError("epoch_size == 0, decrease batch_size or seq_length")
+
+    seq_inputs = np.zeros((batch_size, batch_len) + inputs.shape[1:],
+                          dtype=inputs.dtype)
+    
+    for i in range(batch_size):
+        seq_inputs[i] = inputs[i*batch_len:(i+1)*batch_len]
+
+    for i in range(epoch_size):
+        x = seq_inputs[:, i*seq_length:(i+1)*seq_length]
+        flatten_x = x.reshape((-1,) + inputs.shape[1:])
+        yield flatten_x
+
+
+
 
 def iterate_list_batch_seq_minibatches(inputs, targets, batch_size, seq_length):
     for idx, each_data in enumerate(zip(inputs, targets)):

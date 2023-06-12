@@ -13,14 +13,13 @@ import models.pytorch_models.Attn_models.model as module_arch
 from models.pytorch_models.TS_models.model import base_Model
 from config_files.pytorch_configs.attn_configs import ConfigParser
 from config_files.pytorch_configs.TCC_configs import Config as Configs
-from tiny_test import predict as predict_tiny
-from deepsleep_test import predict as predict_deepsleep
+from tiny_test import predict_tiny, predict_tiny_nolabels
+from deepsleep_test import predict_deepsleep, predict_deepsleep_nolabels
 
 start_time = datetime.now()
 
 device =  torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
 print("The model will be running on", device, "device\n") 
-
 
 def model_evaluate(model, test_dl, device, method):
     model.eval()
@@ -79,7 +78,27 @@ def model_evaluate(model, test_dl, device, method):
 
     return total_loss, total_acc, outs, trgs
 
-def load_model_TCC(test_dl, base_path, method, act_func):
+
+def model_predict(model, test_dl, device, method):
+    model.eval()
+
+    outs = np.array([])
+
+    with torch.no_grad():
+        for data, _, _ in test_dl:
+            data = data.float().to(device)
+            output = model(data)
+            if method == 'TCC': 
+                predictions, _ = output
+            elif method == 'Attn':
+                predictions = output
+                
+            pred = predictions.max(1, keepdim=True)[1]  # get the index of the max log-probability
+            outs = np.append(outs, pred.cpu().numpy())
+
+    return outs
+
+def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
     # Load the model
     configs = Configs()
     model = base_Model(configs, activation_func=act_func).to(device)
@@ -105,11 +124,19 @@ def load_model_TCC(test_dl, base_path, method, act_func):
     
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-    total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
-    
-    return total_acc, outs, trgs
+    total_loss = []
+    total_acc = []
 
-def load_model_Attn(test_dl, base_path):
+    outs = np.array([])
+    trgs = np.array([])
+    if labels==False:
+        outs = model_predict(model, test_dl, 'cpu', 'TCC')
+    else:
+        total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
+        
+    return total_loss, total_acc, outs, trgs
+
+def load_model_Attn(test_dl, base_path, labels=True):
     # fix random seeds for reproducibility
     SEED = 123
     torch.manual_seed(SEED)
@@ -130,11 +157,13 @@ def load_model_Attn(test_dl, base_path):
                       help='fold_id')
     args.add_argument('-da', '--np_data_dir', type=str,
                       help='Directory containing numpy files')
+    
+    total_acc = []
 
-    options = []
-    fold_id = 1
+    outs = np.array([])
+    trgs = np.array([])
 
-    config = ConfigParser.from_args(args, fold_id, options)
+    config = ConfigParser.from_args(args, 1, [])
     model = config.init_obj('arch', module_arch)
 
      # Load the saved checkpoint
@@ -147,38 +176,75 @@ def load_model_Attn(test_dl, base_path):
     model.eval()
 
     print("======          ATTN Sleep         ======")
-    total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'Attn')
+    if labels==True:
+        total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'Attn')
+    else:
+        outs = model_predict(model, test_dl, 'cpu', 'Attn')
 
     return total_acc, outs, trgs
 
-def load_model_Tiny(test_dl, base_path, act_func):
+def load_model_Tiny(base_path, act_func, labels=True):
+    f1_score = []
+    acc = []
+    preds = np.array([])
 
     if act_func == 'ReLU':
         model_path = "TestModels/input/tiny81.9ReLU"
     else:
         model_path = "TestModels/input/BestModelGELU"
-    acc, f1_score, cm = predict_tiny(
-        config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
-        model_dir=str(os.path.join(base_path, model_path)),
-        output_dir=str(os.path.join(base_path, model_path)),
-        log_file='output.log',
-        use_best=False,
-        act_func = act_func
-    )
-    return acc, f1_score, cm
 
-def load_model_Deepsleep(test_dl, base_path):
+    if labels==True:
+        acc, f1_score, preds = predict_tiny(
+            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            model_dir=str(os.path.join(base_path, model_path)),
+            output_dir=str(os.path.join(base_path, model_path)),
+            log_file='output.log',
+            use_best=False,
+            act_func = act_func
+        )
+    else:
+        preds = predict_tiny_nolabels(
+            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            model_dir=str(os.path.join(base_path, model_path)),
+            output_dir=str(os.path.join(base_path, model_path)),
+            log_file='output.log',
+            use_best=False,
+            act_func = act_func
+        )
+    acc = round(acc * 100, 2)
+    f1_score = round(f1_score * 100, 2)
+    print("acc , f1 ", acc , " ", f1_score)
+    return acc, f1_score, preds
+
+def load_model_Deepsleep(base_path, labels=True):
     n_subjects = 1
     n_subjects_per_fold = 1
-    acc, mf1, cm = predict_deepsleep(
-        data_dir=str(os.path.join(base_path,"TestModels/data")),
-        model_dir=str(os.path.join(base_path, "TestModels")),
-        output_dir=str(os.path.join(base_path, "TestModels")),
-        n_subjects=n_subjects,
-        n_subjects_per_fold=n_subjects_per_fold,
-        base_path=base_path
-    )
-    return acc, mf1, cm
+    f1 = []
+    acc = []
+
+    if labels==True:
+        acc, f1, outs = predict_deepsleep(
+            data_dir=str(os.path.join(base_path,"TestModels/data")),
+            model_dir=str(os.path.join(base_path, "TestModels")),
+            output_dir=str(os.path.join(base_path, "TestModels")),
+            n_subjects=n_subjects,
+            n_subjects_per_fold=n_subjects_per_fold,
+            base_path=base_path
+        )
+    else:
+        outs = predict_deepsleep_nolabels(
+            data_dir=str(os.path.join(base_path,"TestModels/data")),
+            model_dir=str(os.path.join(base_path, "TestModels")),
+            output_dir=str(os.path.join(base_path, "TestModels")),
+            n_subjects=n_subjects,
+            n_subjects_per_fold=n_subjects_per_fold,
+            base_path=base_path
+        )
+
+    acc = round(acc * 100, 2)
+    f1 = round(f1 * 100, 2)
+    print("acc , f1 ", acc , " ", f1)
+    return acc, f1, outs
 
 # def main():
 #     # root

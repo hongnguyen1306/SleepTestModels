@@ -113,8 +113,7 @@ class TinySleepNet(nn.Module):
         self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1, batch_first=True)
         self.rnn_dropout = nn.Dropout(p=0.5)  # todo 是否需要这个dropout?
         self.fc = nn.Linear(self.config['n_rnn_units'], 5)
-        
-
+    
     def forward(self, x, state):
         x = self.cnn(x)
         # input of LSTM must be shape(seq_len, batch, input_size)
