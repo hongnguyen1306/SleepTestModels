@@ -87,7 +87,7 @@ def predict():
 
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
-    return render_template('users.html', image_names=image_names)
+    return render_template('user.html', image_names=image_names)
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():

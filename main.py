@@ -184,8 +184,8 @@ def load_model_Attn(test_dl, base_path, labels=True):
     return total_acc, outs, trgs
 
 def load_model_Tiny(base_path, act_func, labels=True):
-    f1_score = []
-    acc = []
+    f1_score = 0
+    acc = 0
     preds = np.array([])
 
     if act_func == 'ReLU':
@@ -219,8 +219,8 @@ def load_model_Tiny(base_path, act_func, labels=True):
 def load_model_Deepsleep(base_path, labels=True):
     n_subjects = 1
     n_subjects_per_fold = 1
-    f1 = []
-    acc = []
+    f1 = 0
+    acc = 0
 
     if labels==True:
         acc, f1, outs = predict_deepsleep(
