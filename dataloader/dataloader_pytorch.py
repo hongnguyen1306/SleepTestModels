@@ -41,8 +41,11 @@ class Load_Dataset(Dataset):
         #     X_train = X_train.unsqueeze(2)
 
         # make sure the Channels in second dim
-        if X_train.shape.index(min(X_train.shape)) != 1:
+        # if X_train.shape.index(min(X_train.shape)) != 1:
+        #     X_train = X_train.permute(0, 2, 1)
+        if X_train.shape[1:].index(min(X_train.shape[1:])) != 0:
             X_train = X_train.permute(0, 2, 1)
+
 
         if isinstance(X_train, np.ndarray):
             self.x_data = torch.from_numpy(X_train)

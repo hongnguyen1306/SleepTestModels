@@ -37,7 +37,8 @@ class SeqDataLoader(object):
                 raise Exception("Found mismatch in sampling rate.")
 
             # Reshape the data to match the input of the model - conv2d
-            tmp_data = np.squeeze(tmp_data)
+            # tmp_data = np.squeeze(tmp_data)
+            tmp_data = np.squeeze(tmp_data, axis=(2,))  # Remove the axis=2 dimension
             tmp_data = tmp_data[:, :, np.newaxis, np.newaxis]
             
             # # Reshape the data to match the input of the model - conv1d
@@ -72,7 +73,7 @@ class SeqDataLoader(object):
     def load_subject_data(data_dir, subject_idx):
         # Remove non-mat files, and perform ascending sort
         subject_files = []
-        subject_files = glob.glob(data_dir + "/*.npz")
+        subject_files = [data_dir]
         # subject_files.append(npz_file)
         
         if len(subject_files) == 0 or len(subject_files) > 2:
@@ -99,7 +100,8 @@ class SeqDataLoader(object):
                     raise Exception("Found mismatch in sampling rate.")
 
                 # Reshape the data to match the input of the model - conv2d
-                tmp_data = np.squeeze(tmp_data)
+                # tmp_data = np.squeeze(tmp_data)
+                tmp_data = np.squeeze(tmp_data, axis=(2,))  # Remove the axis=2 dimension
                 tmp_data = tmp_data[:, :, np.newaxis, np.newaxis]
                 
                 # # Reshape the data to match the input of the model - conv1d

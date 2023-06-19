@@ -35,7 +35,7 @@ def model_evaluate(model, test_dl, device, method):
     with torch.no_grad():
         for data, labels, _, _ in test_dl:
             data, labels = data.float().to(device), labels.long().to(device)
-
+            print("TCC data.shape ", data.shape)
             output = model(data)
             if method == 'TCC': 
                 predictions, _ = output
@@ -129,11 +129,15 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
 
     outs = np.array([])
     trgs = np.array([])
+    
     if labels==False:
         outs = model_predict(model, test_dl, 'cpu', 'TCC')
     else:
         total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
-        
+    
+    np.set_printoptions(threshold=np.inf)
+    print("TCC Nhãn dự đoán ", outs)
+    print("TCC Nhãn đúng ", trgs)
     return total_loss, total_acc, outs, trgs
 
 def load_model_Attn(test_dl, base_path, labels=True):
@@ -183,7 +187,7 @@ def load_model_Attn(test_dl, base_path, labels=True):
 
     return total_acc, outs, trgs
 
-def load_model_Tiny(base_path, act_func, labels=True):
+def load_model_Tiny(data_path, base_path, act_func, labels=True):
     f1_score = 0
     acc = 0
     preds = np.array([])
@@ -198,6 +202,7 @@ def load_model_Tiny(base_path, act_func, labels=True):
             config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
+            data_dir=str(os.path.join(base_path, data_path)),
             log_file='output.log',
             use_best=False,
             act_func = act_func
@@ -207,6 +212,7 @@ def load_model_Tiny(base_path, act_func, labels=True):
             config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
+            data_dir=str(os.path.join(base_path, data_path)),
             log_file='output.log',
             use_best=False,
             act_func = act_func
@@ -216,7 +222,7 @@ def load_model_Tiny(base_path, act_func, labels=True):
     print("acc , f1 ", acc , " ", f1_score)
     return acc, f1_score, preds
 
-def load_model_Deepsleep(base_path, labels=True):
+def load_model_Deepsleep(data_path, base_path, labels=True):
     n_subjects = 1
     n_subjects_per_fold = 1
     f1 = 0
@@ -224,7 +230,7 @@ def load_model_Deepsleep(base_path, labels=True):
 
     if labels==True:
         acc, f1, outs = predict_deepsleep(
-            data_dir=str(os.path.join(base_path,"TestModels/data")),
+            data_dir=str(os.path.join(base_path, data_path)),
             model_dir=str(os.path.join(base_path, "TestModels")),
             output_dir=str(os.path.join(base_path, "TestModels")),
             n_subjects=n_subjects,
@@ -233,7 +239,7 @@ def load_model_Deepsleep(base_path, labels=True):
         )
     else:
         outs = predict_deepsleep_nolabels(
-            data_dir=str(os.path.join(base_path,"TestModels/data")),
+            data_dir=str(os.path.join(base_path, data_path)),
             model_dir=str(os.path.join(base_path, "TestModels")),
             output_dir=str(os.path.join(base_path, "TestModels")),
             n_subjects=n_subjects,

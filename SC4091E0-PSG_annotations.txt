@@ -1,0 +1,6 @@
++0.0000000,60,Sleep stage 2
++60.0000000,30,Sleep stage 3
++90.0000000,30,Sleep stage 2
++120.0000000,60,Sleep stage 3
++180.0000000,120,Sleep stage 2
+

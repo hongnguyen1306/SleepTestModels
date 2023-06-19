@@ -765,7 +765,7 @@ def predict_deepsleep(
             batch_size=1,
             input_dims=EPOCH_SEC_LEN*100,
             n_classes=NUM_CLASSES,
-            seq_length=25,
+            seq_length=1,
             n_rnn_layers=2,
             return_last=False,
             is_train=False,
@@ -788,8 +788,8 @@ def predict_deepsleep(
             print("Model restored from: {}\n".format(checkpoint_path))
             print("Model restored from: {}\n".format(
                 tf.train.latest_checkpoint(checkpoint_path)))
-
             # Load testing data
+            print("data_dir deepsleep ", data_dir)
             x, y = SeqDataLoader.load_subject_data(
                 data_dir=data_dir,
                 subject_idx=subject_idx
@@ -841,6 +841,8 @@ def predict_deepsleep(
     # print(cm)
     preds = y_pred.astype(int)
     trues = y_true.astype(int)
+    print("preds ", preds)
+    print("trues ", trues)
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):
@@ -850,8 +852,8 @@ def predict_deepsleep(
 
     # In kết quả
     print("=====         DeepSleepNet        =====")
-    for label, acc in accuracy.items():
-        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
+    for label, a in accuracy.items():
+        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",a)
 
     return acc, f1, preds
 
@@ -875,7 +877,7 @@ def predict_deepsleep_nolabels(
             batch_size=1,
             input_dims=EPOCH_SEC_LEN*100,
             n_classes=NUM_CLASSES,
-            seq_length=25,
+            seq_length=1,
             n_rnn_layers=2,
             return_last=False,
             is_train=False,

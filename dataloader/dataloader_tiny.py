@@ -21,7 +21,8 @@ def load_data_withlabels(subject_files):
                 raise Exception("Mismatch sampling rate.")
 
             # Reshape the data to match the input of the model - conv2d
-            x = np.squeeze(x)
+            # x = np.squeeze(x)
+            x = np.squeeze(x, axis=(2,))  # Remove the axis=2 dimension
             x = x[:, :, np.newaxis, np.newaxis]
 
             # Casting
@@ -51,7 +52,8 @@ def load_data_nolabels(subject_files):
 
             # Reshape the data to match the input of the model - conv2d
             np.set_printoptions(formatter={'float': lambda x: "{:.8f}".format(x)})
-            x = np.squeeze(x)
+            # x = np.squeeze(x)
+            x = np.squeeze(x, axis=(2,))  # Remove the axis=2 dimension
             x = x[:, :, np.newaxis, np.newaxis]
 
             # Casting

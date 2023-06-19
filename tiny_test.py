@@ -46,6 +46,7 @@ def predict_tiny_nolabels(
     config_file,
     model_dir,
     output_dir,
+    data_dir,
     log_file,
     use_best=True,
     act_func='ReLU',
@@ -60,7 +61,8 @@ def predict_tiny_nolabels(
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    subject_files = glob.glob(os.path.join(config["data_dir"], "*.npz"))
+    # subject_files = glob.glob(os.path.join(config["data_dir"], "*.npz"))
+    subject_files = [data_dir]
     print("subject_files ", subject_files)
 
     # Add dummy class weights
@@ -108,6 +110,7 @@ def predict_tiny(
     config_file,
     model_dir,
     output_dir,
+    data_dir,
     log_file,
     use_best=True,
     act_func='ReLU',
@@ -122,8 +125,9 @@ def predict_tiny(
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    subject_files = glob.glob(os.path.join(config["data_dir"], "*.npz"))
-
+    # subject_files = glob.glob(os.path.join(config["data_dir"], "*.npz"))
+    subject_files = [data_dir]
+    print("subject_files ", subject_files)
     # Add dummy class weights
     config["class_weights"] = np.ones(config["n_classes"], dtype=np.float32)
 
@@ -170,6 +174,8 @@ def predict_tiny(
     trues = np.array(trues)
     preds = preds.astype(int)
     trues = trues.astype(int)
+    print("preds ", preds)
+    print("trues ", trues)
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):
@@ -179,8 +185,8 @@ def predict_tiny(
 
     # In kết quả
     print("=====         TinySleepNet        =====")
-    for label, acc in accuracy.items():
-        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",acc)
+    for label, a in accuracy.items():
+        print("Nhãn ", label, " Tỉ lệ dự đoán đúng = ",a)
         
     return acc, f1_score, preds
 
