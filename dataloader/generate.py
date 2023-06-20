@@ -5,6 +5,7 @@ import numpy as np
 
 def generate_withlabels(base_path, data_path):
 
+    print("********** data_path", data_path)
     test_files = np.array([os.path.join(base_path, data_path)])
     print("******* test_files ", test_files)
     X_train = np.load(test_files[0])["x"]
@@ -19,7 +20,7 @@ def generate_withlabels(base_path, data_path):
     data_save = dict()
     data_save["samples"] = torch.from_numpy(X_train.transpose(0, 2, 1))
     data_save["labels"] = torch.from_numpy(y_train)
-    torch.save(data_save, os.path.join(base_path, "test_data.pt"))
+    torch.save(data_save, os.path.join(base_path, "data/test_data.pt"))
 
 def generate_nolabels(base_path, data_path):
 

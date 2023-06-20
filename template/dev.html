@@ -1,59 +1,62 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Dev</title>
     <meta charset="UTF-8">
 </head>
+
 <body>
     <h1>Hình ảnh dữ liệu EDF thô</h1>
     {% for file in image_names %}
-        {% if file.endswith('raw_edf.png') %}
-            <div>
-                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-            </div>
-        {% endif %}
+    {% if file.endswith('Fpz_Cz.png') %}
+    <div>
+        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    </div>
+    {% endif %}
     {% endfor %}
     <br>
     <h1>Kết quả phân loại giấc ngủ</h1>
     {% for file in image_names %}
-        {% if file.endswith('acc.png') %}
-            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        {% endif %}
+    {% if file.endswith('acc.png') %}
+    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    {% endif %}
     {% endfor %}
     <br>
     {% for file in image_names %}
-        {% if file.endswith('true_line.png') %}
-            <div>
-                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-            </div>
-        {% endif %}
+    {% if file.endswith('true_line.png') %}
+    <div>
+        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    </div>
+    {% endif %}
     {% endfor %}
     <div>
         {% for file in image_names %}
-            {% if file.endswith('TS-TCC.png') %}
-                <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-            {% endif %}
-            {% if file.endswith('CA-TCC.png') %}
-                <div>
-                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-                </div>
-            {% endif %}
-            {% if file.endswith('Attn.png') %}
-                <div>
-                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-                </div>
-            {% endif %}
-            {% if file.endswith('TinySleepNet.png') %}
-                <div>
-                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-                </div>
-            {% endif %}
-            {% if file.endswith('DeepSleepNet.png') %}
-                <div>
-                    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-                </div>
-            {% endif %}
+        {% if file.endswith('TS-TCC.png') %}
+        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        {% endif %}
+        {% if file.endswith('CA-TCC.png') %}
+        <div>
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% if file.endswith('Attn.png') %}
+        <div>
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% if file.endswith('TinySleepNet.png') %}
+        <div>
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% if file.endswith('DeepSleepNet.png') %}
+        <div>
+            <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
 </body>
+
 </html>

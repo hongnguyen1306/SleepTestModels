@@ -338,17 +338,17 @@ def main():
 
     # print("\n*****    ReLU    ******")
     loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
-    loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+    # loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
 
-    # print("\n*****    GELU    ******")
-    loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
-    loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+    # # print("\n*****    GELU    ******")
+    # loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    # loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
 
 
-    acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
-    acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
-    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
-    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
+    # acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+    # acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
+    # acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
+    # acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
 
         
 
