@@ -15,6 +15,7 @@ from config_files.pytorch_configs.attn_configs import ConfigParser
 from config_files.pytorch_configs.TCC_configs import Config as Configs
 from tiny_test import predict_tiny, predict_tiny_nolabels
 from deepsleep_test import predict_deepsleep, predict_deepsleep_nolabels
+from dataloader.generate import generate_nolabels, generate_withlabels
 
 start_time = datetime.now()
 
@@ -105,21 +106,21 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
     if act_func == 'ReLU':
         if method == 'TS':
             print("======         TS TCC Sleep         ======")
-            load_from = "TestModels/input/mode_TS"
+            load_from = "input/mode_TS"
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_25_ReLU.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
-            load_from =  'TestModels/input/exp3CA/run_1/supervised_seed_123/saved_models/'
+            load_from =  'input/exp3CA/run_1/supervised_seed_123/saved_models/'
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_19.pt"), map_location=device)
         
     if act_func == 'GELU':
         if method == 'TS':
             print("======         TS TCC Sleep         ======")
-            load_from = "TestModels/input/mode_TS"
+            load_from = "input/mode_TS"
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_17_GELU.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
-            load_from =  'TestModels/input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
+            load_from =  'input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_22.pt"), map_location=device)
     
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -148,7 +149,7 @@ def load_model_Attn(test_dl, base_path, labels=True):
     torch.backends.cudnn.benchmark = False
     np.random.seed(SEED)
 
-    config_path = str(os.path.join(base_path, "TestModels/models/pytorch_models/Attn_models/config.json"))
+    config_path = str(os.path.join(base_path, "models/pytorch_models/Attn_models/config.json"))
 
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=config_path, type=str,
@@ -171,7 +172,7 @@ def load_model_Attn(test_dl, base_path, labels=True):
     model = config.init_obj('arch', module_arch)
 
      # Load the saved checkpoint
-    resume_path = str(os.path.join(base_path,"TestModels/input/exp3Attn/checkpoint-epoch96.pth"))
+    resume_path = str(os.path.join(base_path,"input/exp3Attn/checkpoint-epoch96.pth"))
     checkpoint = torch.load(resume_path, map_location=device)
 
     print("Checkpoint loaded. Resume training from epoch {}".format(checkpoint['epoch']))
@@ -193,13 +194,13 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
     preds = np.array([])
 
     if act_func == 'ReLU':
-        model_path = "TestModels/input/tiny81.9ReLU"
+        model_path = "input/tiny81.9ReLU"
     else:
-        model_path = "TestModels/input/BestModelGELU"
+        model_path = "input/BestModelGELU"
 
     if labels==True:
         acc, f1_score, preds = predict_tiny(
-            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
@@ -209,7 +210,7 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
         )
     else:
         preds = predict_tiny_nolabels(
-            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
@@ -253,26 +254,32 @@ def load_model_Deepsleep(data_path, base_path, labels=True):
     return acc, f1, outs
 
 # def main():
-#     # root
-#     base_path = "/home/rosa"
+# #     # root
+#     base_path = ""
 
-#     # Load datasets
-#     data_path = str(os.path.join(base_path,"TestModels/data"))
-#     test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_data.pt")))
+# #     # Load datasets
+# #     data_path = str(os.path.join(base_path,"data"))
+#     test_npz = "data/test_data.npz"
+#     generate_withlabels(base_path, test_npz)
+#     test_pt = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=True)
 
 
 #     print("*****    ReLU    ******")
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='ReLU')
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='ReLU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
     
 #     print("*****    GELU    ******")
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU')
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+#     total_loss, total_acc, outs, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
     
-#     total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
-#     load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
-#     load_model_Tiny(test_dl, base_path, act_func = 'GELU')
-#     load_model_Deepsleep(test_dl, base_path)
+# #     total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
+# #     load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
+# #     load_model_Tiny(test_dl, base_path, act_func = 'GELU')
+# #     load_model_Deepsleep(test_dl, base_path)
+
+# if __name__ == '__main__':
+#     main()
+
 
 
 
