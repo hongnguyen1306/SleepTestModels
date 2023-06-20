@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import pandas as pd
+
 
 from dataloader.dataloader_pytorch import data_generator
 import models.pytorch_models.Attn_models.model as module_arch
@@ -15,6 +17,10 @@ from config_files.pytorch_configs.attn_configs import ConfigParser
 from config_files.pytorch_configs.TCC_configs import Config as Configs
 from tiny_test import predict_tiny, predict_tiny_nolabels
 from deepsleep_test import predict_deepsleep, predict_deepsleep_nolabels
+from dataloader.dataloader_pytorch import data_generator
+from dataloader.generate import generate_nolabels, generate_withlabels
+
+
 
 start_time = datetime.now()
 
@@ -35,7 +41,6 @@ def model_evaluate(model, test_dl, device, method):
     with torch.no_grad():
         for data, labels, _, _ in test_dl:
             data, labels = data.float().to(device), labels.long().to(device)
-            print("TCC data.shape ", data.shape)
             output = model(data)
             if method == 'TCC': 
                 predictions, _ = output
@@ -104,22 +109,22 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
     model = base_Model(configs, activation_func=act_func).to(device)
     if act_func == 'ReLU':
         if method == 'TS':
-            print("======         TS TCC Sleep         ======")
-            load_from = "TestModels/input/mode_TS"
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_25_ReLU.pt"), map_location=device)
+            print("======         TS TCC Sleep   RELU      ======")
+            load_from = "input/mode_TS"
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_40_ReLU.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
-            load_from =  'TestModels/input/exp3CA/run_1/supervised_seed_123/saved_models/'
+            load_from =  'input/exp3CA/run_1/supervised_seed_123/saved_models/'
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_19.pt"), map_location=device)
         
     if act_func == 'GELU':
         if method == 'TS':
-            print("======         TS TCC Sleep         ======")
-            load_from = "TestModels/input/mode_TS"
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_17_GELU.pt"), map_location=device)
+            print("======         TS TCC Sleep GELU        ======")
+            load_from = "input/mode_TS"
+            checkpoint = torch.load(os.path.join(load_from, "model_epoch_25_GELU.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
-            load_from =  'TestModels/input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
+            load_from =  'input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
             checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_22.pt"), map_location=device)
     
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -130,14 +135,30 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
     outs = np.array([])
     trgs = np.array([])
     
+
+    # # Convert numpy arrays to pandas dataframes
+    # outs_df = pd.DataFrame(outs)
+    # trgs_df = pd.DataFrame(trgs)
+
+    # # Define the file paths for saving the Excel files
+    # outs_file_path = 'outs.xlsx'
+    # trgs_file_path = 'trgs.xlsx'
+
+    # # Save the dataframes to Excel files
+    # outs_df.to_excel(outs_file_path, index=False)
+    # trgs_df.to_excel(trgs_file_path, index=False)
+
+    # print("Data TCC has been exported to Excel files.")
+
     if labels==False:
         outs = model_predict(model, test_dl, 'cpu', 'TCC')
     else:
         total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'TCC')
     
     np.set_printoptions(threshold=np.inf)
-    print("TCC Nhãn dự đoán ", outs)
-    print("TCC Nhãn đúng ", trgs)
+    # print("TCC Nhãn dự đoán ", outs)
+    # print("TCC Nhãn đúng ", trgs)
+
     return total_loss, total_acc, outs, trgs
 
 def load_model_Attn(test_dl, base_path, labels=True):
@@ -148,7 +169,7 @@ def load_model_Attn(test_dl, base_path, labels=True):
     torch.backends.cudnn.benchmark = False
     np.random.seed(SEED)
 
-    config_path = str(os.path.join(base_path, "TestModels/models/pytorch_models/Attn_models/config.json"))
+    config_path = str(os.path.join(base_path, "models/pytorch_models/Attn_models/config.json"))
 
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=config_path, type=str,
@@ -171,7 +192,7 @@ def load_model_Attn(test_dl, base_path, labels=True):
     model = config.init_obj('arch', module_arch)
 
      # Load the saved checkpoint
-    resume_path = str(os.path.join(base_path,"TestModels/input/exp3Attn/checkpoint-epoch96.pth"))
+    resume_path = str(os.path.join(base_path,"input/exp3Attn/checkpoint-epoch96.pth"))
     checkpoint = torch.load(resume_path, map_location=device)
 
     print("Checkpoint loaded. Resume training from epoch {}".format(checkpoint['epoch']))
@@ -184,6 +205,9 @@ def load_model_Attn(test_dl, base_path, labels=True):
         total_loss, total_acc, outs, trgs = model_evaluate(model, test_dl, 'cpu', 'Attn')
     else:
         outs = model_predict(model, test_dl, 'cpu', 'Attn')
+    
+        # Convert numpy arrays to pandas dataframes
+
 
     return total_acc, outs, trgs
 
@@ -193,13 +217,14 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
     preds = np.array([])
 
     if act_func == 'ReLU':
-        model_path = "TestModels/input/tiny81.9ReLU"
+        model_path = "input/tiny81.9ReLU"
     else:
-        model_path = "TestModels/input/BestModelGELU"
+        model_path = "input/BestModelGELU"
 
+    print("model_path ", model_path)
     if labels==True:
         acc, f1_score, preds = predict_tiny(
-            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
@@ -209,7 +234,7 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
         )
     else:
         preds = predict_tiny_nolabels(
-            config_file= str(os.path.join(base_path, "TestModels/config_files/pytorch_configs/tiny_configs.py")),
+            config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
             model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
@@ -220,6 +245,11 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
     acc = round(acc * 100, 2)
     f1_score = round(f1_score * 100, 2)
     print("acc , f1 ", acc , " ", f1_score)
+        # Convert numpy arrays to pandas dataframes and transpose them
+
+    # Define the file paths for saving the Excel files
+    
+
     return acc, f1_score, preds
 
 def load_model_Deepsleep(data_path, base_path, labels=True):
@@ -252,27 +282,76 @@ def load_model_Deepsleep(data_path, base_path, labels=True):
     print("acc , f1 ", acc , " ", f1)
     return acc, f1, outs
 
-# def main():
-#     # root
-#     base_path = "/home/rosa"
+def main():
+    # root
+    base_path = "/home/rosa/TestModels"
 
-#     # Load datasets
-#     data_path = str(os.path.join(base_path,"TestModels/data"))
-#     test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_data.pt")))
-
-
-#     print("*****    ReLU    ******")
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='ReLU')
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='ReLU')
-    
-#     print("*****    GELU    ******")
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU')
-#     total_loss, total_acc, outs, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU')
-    
-#     total_loss, total_acc, outs, trgs = load_model_Attn(test_dl, base_path)
-#     load_model_Tiny(test_dl, base_path, act_func = 'ReLU')
-#     load_model_Tiny(test_dl, base_path, act_func = 'GELU')
-#     load_model_Deepsleep(test_dl, base_path)
+    # Load datasets
+    # data_path = str(os.path.join(base_path,"data"))
+    # test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")))
 
 
+    # val_folder = "/home/rosa/val"
+    # for test_npz_file in os.listdir(val_folder):
+    #     if test_npz_file.endswith('.npz'):
+    #         test_npz_path = os.path.join(val_folder, test_npz_file)
+    #         generate_withlabels(base_path, test_npz_path)
+    #         test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
+
+    #         # print("\n*****    ReLU    ******")
+    #         loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+    #         loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+
+    #         # print("\n*****    GELU    ******")
+    #         loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    #         loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+
+
+    #         # acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+    #         acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz_path, base_path, act_func = 'ReLU', labels=True)
+    #         acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz_path, base_path, act_func = 'GELU', labels=True)
+    #         # acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
+
+    #         results = {
+    #             'trgs': trgs,
+    #             'outs_TS_G': outs_TS_G,
+    #             'outs_TS': outs_TS,
+    #             'outs_CA': outs_CA,
+    #             'outs_CA_G': outs_CA_G,
+    #             'outs_tiny_ReLU': outs_tiny_ReLU,
+    #             'outs_tiny_GELU': outs_tiny_GELU
+    #         }
+
+    #         # Convert the dictionary to a dataframe
+    #         results_df = pd.DataFrame(results)
+    #         file_name = os.path.splitext(test_npz_file)[0]
+    #         # Define the file path for saving the Excel file    
+    #         excel_file_path = '/home/rosa/excel_test/' + str(file_name) + '_results.xlsx'
+
+    #         # Save the dataframe to the Excel file
+    #         results_df.to_excel(excel_file_path, index=False)
+
+    test_path = "data/test_data_10.npz"
+
+    generate_withlabels(base_path, test_path)
+    test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
+
+    # print("\n*****    ReLU    ******")
+    loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+    loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+
+    # print("\n*****    GELU    ******")
+    loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+
+
+    acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+    acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
+    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
+    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
+
+        
+
+if __name__ == '__main__':
+    main()
 

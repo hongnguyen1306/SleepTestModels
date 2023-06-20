@@ -19,7 +19,7 @@ def generate_withlabels(base_path, data_path):
     data_save = dict()
     data_save["samples"] = torch.from_numpy(X_train.transpose(0, 2, 1))
     data_save["labels"] = torch.from_numpy(y_train)
-    torch.save(data_save, os.path.join(base_path, "TestModels/test_data.pt"))
+    torch.save(data_save, os.path.join(base_path, "test_data.pt"))
 
 def generate_nolabels(base_path, data_path):
 
@@ -34,7 +34,7 @@ def generate_nolabels(base_path, data_path):
 
     data_save = dict()
     data_save["samples"] = torch.from_numpy(X_train.transpose(0, 2, 1))
-    torch.save(data_save, os.path.join(base_path, "TestModels/data/test_data.pt"))
+    torch.save(data_save, os.path.join(base_path, "data/test_data.pt"))
 
 # ######## Test One Stage ##########
 # # test_files = files[(len_train + len_valid):]

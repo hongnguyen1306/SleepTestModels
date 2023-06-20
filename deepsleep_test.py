@@ -781,7 +781,7 @@ def predict_deepsleep(
             fold_idx = subject_idx // n_subjects_per_fold
 
             # Restore the trained model
-            checkpoint_path = str(os.path.join(base_path, "TestModels/input/DeepSleepModels"))
+            checkpoint_path = str(os.path.join(base_path, "input/DeepSleepModels"))
             saver = tf.compat.v1.train.Saver()
             saver.restore(sess, str(os.path.join(checkpoint_path, 'model_fold0.ckpt-60')))
             # saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
@@ -839,10 +839,12 @@ def predict_deepsleep(
     #     )
     # ))
     # print(cm)
+    
     preds = y_pred.astype(int)
     trues = y_true.astype(int)
-    print("preds ", preds)
-    print("trues ", trues)
+    # print("preds ", preds)
+    # print("trues ", trues)
+
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):
@@ -893,7 +895,7 @@ def predict_deepsleep_nolabels(
             fold_idx = subject_idx // n_subjects_per_fold
 
             # Restore the trained model
-            checkpoint_path = str(os.path.join(base_path, "TestModels/input/DeepSleepModels"))
+            checkpoint_path = str(os.path.join(base_path, "input/DeepSleepModels"))
             saver = tf.compat.v1.train.Saver()
             saver.restore(sess, str(os.path.join(checkpoint_path, 'model_fold0.ckpt-60')))
             # saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))

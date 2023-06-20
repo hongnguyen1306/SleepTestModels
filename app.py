@@ -20,9 +20,10 @@ from main import load_model_TCC, load_model_Attn, load_model_Tiny, load_model_De
 from dataloader.dataloader_pytorch import data_generator
 from dataloader.edf_to_npz import EdfToNpz, EdfToNpz_NoLabels
 
-app = Flask(__name__, template_folder='/home/rosa/TestModels/template')
-base_path = "/home/rosa"
-data_path = "TestModels/data"
+
+base_path = "/home/rosa/TestModels"
+data_path = "data"
+app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
 
 def delete_files_with_extension(folder_path, extension):
     for file_name in os.listdir(folder_path):
@@ -42,7 +43,7 @@ def preds_chart(preds, name_chart):
     ax.set_ylabel('Sleep stage')
     ax.set_yticks(range(5))
     ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
-    plt.savefig(os.path.join('/home/rosa/TestModels/static', filename)) 
+    plt.savefig(os.path.join(base_path, "static", filename)) 
     plt.close()
 
 @app.route('/')
@@ -53,11 +54,12 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     # Load datasets
-    delete_files_with_extension("/home/rosa/TestModels/data", 'PSG.edf')
-    delete_files_with_extension("/home/rosa/TestModels/data", 'Hypnogram.edf')
-    delete_files_with_extension("/home/rosa/TestModels/data", '.npz')
-    delete_files_with_extension("/home/rosa/TestModels/data", '.pt')
-    delete_files_with_extension("/home/rosa/TestModels/static", '.png')
+    
+    delete_files_with_extension(os.path.join(base_path, "data", 'PSG.edf'))
+    delete_files_with_extension(os.path.join(base_path, "data", 'Hypnogram.edf'))
+    delete_files_with_extension(os.path.join(base_path, "data", '.npz'))
+    delete_files_with_extension(os.path.join(base_path, "data", '.pt'))
+    delete_files_with_extension(os.path.join(base_path, "static", '.png'))
 
     uploaded_files = request.files.getlist('file')
     print("\n************* uploaded_files ", uploaded_files)
@@ -68,8 +70,8 @@ def predict():
 
 
     EdfToNpz_NoLabels(base_path, data_path)
-    generate_nolabels(base_path, "TestModels/data/test_data.npz")
-    test_dl = data_generator(str(os.path.join(base_path, "TestModels/data/test_data.pt")), labels=False)
+    generate_nolabels(base_path, "data/test_data.npz")
+    test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=False)
 
     total_loss, total_acc_TS, outs_TS, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU', labels=False)
     total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU', labels=False)
@@ -92,11 +94,11 @@ def predict():
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
     # Load datasets
-    # delete_files_with_extension("/home/rosa/TestModels/data", 'PSG.edf')
-    # delete_files_with_extension("/home/rosa/TestModels/data", 'Hypnogram.edf')
-    # delete_files_with_extension("/home/rosa/TestModels/data", '.npz')
-    # delete_files_with_extension("/home/rosa/TestModels/data", '.pt')
-    delete_files_with_extension("/home/rosa/TestModels/static", '.png')
+    # delete_files_with_extension(os.path.join(base_path, "data", 'PSG.edf'))
+    # delete_files_with_extension(os.path.join(base_path, "data", 'Hypnogram.edf'))
+    # delete_files_with_extension(os.path.join(base_path, "data", '.npz'))
+    # delete_files_with_extension(os.path.join(base_path, "data", '.pt'))
+    delete_files_with_extension(os.path.join(base_path, "static", '.png'))
 
     # uploaded_files = request.files.getlist('file')
     # print("\n************* uploaded_files ", uploaded_files)
@@ -121,26 +123,27 @@ def evaluate():
     # raw.plot()
     # random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     # filename = 'result_' + random_number + '-raw_edf.png'
-    # plt.savefig(os.path.join('/home/rosa/TestModels/static', filename))
+    # plt.savefig(os.path.join(base_path, "static", filename))
     # plt.close()
 
     # EdfToNpz(base_path, data_path)
-    test_npz = "TestModels/data/test_data_label4.npz"
+    test_npz = "test_data_10.npz"
     generate_withlabels(base_path, test_npz)
-    test_pt = data_generator(str(os.path.join(base_path, "TestModels/test_data.pt")), labels=True)
+    test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
 
     # print("\n*****    ReLU    ******")
     total_loss, total_acc_TS, outs_TS, trgs = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
     total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
-    
+
     # print("\n*****    GELU    ******")
-    # total_loss, total_acc_TS, outs_TS, trgs  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
-    # total_loss, total_acc_CA, outs_CA, trgs  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+    total_loss, total_acc_TS, outs_TS, trgs  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    total_loss, total_acc_CA, outs_CA, trgs  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
     
     total_acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
     acc_tiny_relu, f1_tiny_relu, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=True)
-    # acc_tiny_gelu, f1_tiny_gelu, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
+    acc_tiny_gelu, f1_tiny_gelu, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
     total_acc_deepsleep, total_f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
+    
     print("acc_tiny_relu, total_acc_deepsleep ", acc_tiny_relu, total_acc_deepsleep)
     methods = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
     accuracy = [total_acc_TS, total_acc_CA, total_acc_Attn, acc_tiny_relu, total_acc_deepsleep]
@@ -162,7 +165,7 @@ def evaluate():
     plt.tight_layout()
     # plt.subplots_adjust(bottom=)
     plt.gca().set_yticklabels(['{:.0f}%'.format(x) for x in plt.gca().get_yticks()])  # Format y-axis tick labels as percentages
-    plt.savefig(os.path.join('/home/rosa/TestModels/static', acc_chart)) 
+    plt.savefig(os.path.join(base_path, "static", acc_chart)) 
     plt.close()
 
     # True Labels Chart
@@ -175,14 +178,14 @@ def evaluate():
     ax.set_ylabel('Sleep stage')
     ax.set_yticks(range(5))
     ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
-    plt.savefig(os.path.join('/home/rosa/TestModels/static', true_labels_chart)) 
+    plt.savefig(os.path.join(os.path.join(base_path, "static", true_labels_chart)))
     plt.close()
 
     # Vẽ chú thích
     plt.figure(figsize=(10, 1))
     plt.axis('off')
     plt.text(0, 0.5, 'Danh sách nhãn đúng là: ' + str(trgs), fontsize=12, verticalalignment='center')
-    plt.savefig(os.path.join('/home/rosa/TestModels/static', 'true_labels_legend.png'))
+    plt.savefig(os.path.join(os.path.join(base_path, "static", 'true_labels_legend.png')))
     plt.close()
 
     preds_chart(outs_TS, 'TS-TCC')
