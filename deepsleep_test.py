@@ -839,10 +839,12 @@ def predict_deepsleep(
     #     )
     # ))
     # print(cm)
+    
     preds = y_pred.astype(int)
     trues = y_true.astype(int)
-    print("preds ", preds)
-    print("trues ", trues)
+    # print("preds ", preds)
+    # print("trues ", trues)
+
     # Tính tỉ lệ dự đoán đúng cho từng nhãn
     accuracy = {}
     for label in range(5):

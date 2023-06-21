@@ -1,18 +1,18 @@
 import numpy as np
 import os
 
-data = np.load('/home/rosa/TestModels/SC4072E0.npz', allow_pickle=True)
+data = np.load('/home/rosa/val/SC4162E0.npz', allow_pickle=True)
 y = data['y']
 x = data['x']
 
 # Lấy tất cả các thuộc tính trong file npz
 # In tất cả các thuộc tính
 
-print("x ", len(x))
+# print("x ", len(x))
+# np.set_printoptions(threshold=np.inf)
+# print("y ", y)
 
-indices = np.where(y == 3)[0]
-print(indices)
-print(np.where(y == 4)[0])
+# print(np.where(y == 4)[0])
 
 
 # y_3 = y[y == 3]
@@ -21,12 +21,18 @@ print(np.where(y == 4)[0])
 # print("y_selected ", y_selected)
 # print("x[1:2] ", len(x[400:410])) good
 
-print("x[1:2] ", len(x[911:912]))
-print("y_selected[:1] ", y[911:912])
+# print("x[1:2] ", len(x[540:550]))
+# print("y_selected[:1] ", y[540:550]) good 10 epoch 4151
+
+# print("x[1:2] ", len(x[490:500]))
+# print("y_selected[:1] ", y[490:500]) TS 100, good 4162
+
+print("x[1:2] ", len(x[490:500]))
+print("y_selected[:1] ", y[490:500])
 
 save_dict = {
-            "x": x[911:912],
-            "y": y[911:912],
+            "x": x[490:500],
+            "y": y[490:500],
             "fs": data["fs"],
             "ch_label": data["ch_label"],
             "header_raw": data["header_raw"],

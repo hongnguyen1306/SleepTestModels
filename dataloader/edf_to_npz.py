@@ -62,7 +62,7 @@ EPOCH_SEC_SIZE = 30
 
 def EdfToNpz(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"TestModels/data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")
@@ -215,7 +215,7 @@ def EdfToNpz(base_path, data_dir):
 
 def EdfToNpz_NoLabels(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"TestModels/data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")

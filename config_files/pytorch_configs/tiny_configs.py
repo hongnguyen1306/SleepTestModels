@@ -23,7 +23,7 @@ params = {
 
     # Dataset
     "dataset": "sleepedf",
-    "data_dir": "/home/rosa/TestModels/data",
+    "data_dir": "data",
     "train_dir": "/content/drive/MyDrive/Thesis/Tinysleepnet-pytorch/data/physionet_sleep/train",
     "n_folds": 20,
     "n_subjects": 20,
