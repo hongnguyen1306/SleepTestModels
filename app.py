@@ -126,7 +126,7 @@ def evaluate():
     # plt.close()
 
     # EdfToNpz(base_path, data_path)
-    test_npz = "test_data_10.npz"
+    test_npz = "data/test_data_20.npz"
     generate_withlabels(base_path, test_npz)
     test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
 
@@ -154,7 +154,7 @@ def evaluate():
     x_values = list(range(len(methods)))
 
     # Vẽ biểu đồ
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(10, 4))
     plt.bar(x_values, accuracy)
     plt.xticks(x_values, methods)
     plt.xlabel('Methods')
@@ -169,7 +169,7 @@ def evaluate():
 
     # True Labels Chart
     true_labels_chart = 'result_' + random_number + '-true_line.png'
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=(10, 2))
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(trgs, color='red')
     ax.set_title('True Labels')
@@ -187,11 +187,56 @@ def evaluate():
     plt.savefig(os.path.join(os.path.join(base_path, "static", 'true_labels_legend.png')))
     plt.close()
 
-    preds_chart(outs_TS, 'TS-TCC')
-    preds_chart(outs_CA, 'CA-TCC')
-    preds_chart(outs_attn, 'Attn')
-    preds_chart(outs_tiny, 'TinySleepNet')
-    preds_chart(outs_deepsleep, 'DeepSleepNet')
+
+    def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, name_chart):
+        random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+        filename = 'preds' + random_number + '-' + name_chart + '.png'
+
+        fig = plt.figure(figsize=(10, 2))
+        ax = fig.add_subplot(1, 1, 1)
+
+        ax.plot(outs_TS, label='TS-TCC', color="green")
+        ax.plot(outs_CA, label='CA-TCC', color="blue")
+        ax.plot(outs_attn, label='Attn', color="chocolate")
+        ax.plot(outs_tiny, label='TinySleepNet', color="gold")
+        ax.plot(outs_deepsleep, label='DeepSleepNet', color="darkorchid")
+
+        ax.set_title(name_chart)
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Sleep stage')
+
+        # ax.set_xticklabels('Epochs', fontsize=10)
+        ax.set_yticks(range(2))
+        ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'], fontsize=10)
+
+        plt.savefig(os.path.join('static', filename))
+        plt.close()
+
+
+    preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, 'sum-result')
+    # preds_chart(outs_CA, 'CA-TCC')
+    # preds_chart(outs_attn, 'Attn')
+    # preds_chart(outs_tiny, 'TinySleepNet')
+    # preds_chart(outs_deepsleep, 'DeepSleepNet')
+
+    # fig = plt.figure(figsize=(10, 5))
+    # ax = fig.add_subplot(1, 1, 1)
+
+    # # Vẽ đường cho mỗi biểu đồ cũ
+    # ax.plot(outs_TS, label='TS-TCC')
+    # ax.plot(outs_CA, label='CA-TCC')
+    # ax.plot(outs_attn, label='Attn')
+    # ax.plot(outs_tiny, label='TinySleepNet')
+    # ax.plot(outs_deepsleep, label='DeepSleepNet')
+    # ax.set_title('Biểu đồ của các mô hình học sâu')
+    # ax.set_xlabel('Epochs')
+    # ax.set_ylabel('Sleep stage')
+
+    # # Hiển thị chú thích
+    # ax.legend()
+
+    # # Hiển thị biểu đồ
+    # plt.show()
 
     
     image_names = os.listdir('static/')
@@ -199,5 +244,5 @@ def evaluate():
     return render_template('dev.html', image_names=image_names)
 
 if __name__ == '__main__':
-    app.run(port=8080)
+    app.run(port=1113)
 
