@@ -44,10 +44,8 @@ def compute_performance(cm):
 
 def predict_tiny_nolabels(
     config_file,
-    model_dir,
     output_dir,
     data_dir,
-    log_file,
     use_best=True,
     act_func='ReLU',
 ):
@@ -57,9 +55,6 @@ def predict_tiny_nolabels(
     spec.loader.exec_module(config)
     config = config.predict
 
-    # Create output directory for the specified fold_idx
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
 
     subject_files = [data_dir]
     print("subject_files ", subject_files)
@@ -107,10 +102,8 @@ def predict_tiny_nolabels(
 
 def predict_tiny(
     config_file,
-    model_dir,
     output_dir,
     data_dir,
-    log_file,
     use_best=True,
     act_func='ReLU',
 ):
@@ -119,10 +112,6 @@ def predict_tiny(
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
     config = config.predict
-
-    # Create output directory for the specified fold_idx
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
 
     subject_files = [data_dir]
     print("subject_files ", subject_files)

@@ -60,7 +60,7 @@ ann2label = {
 EPOCH_SEC_SIZE = 30
 
 
-def EdfToNpz(base_path, data_dir):
+def EdfToFullNpz(base_path, data_dir):
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
                         help="Directory where to save outputs.")
@@ -68,7 +68,6 @@ def EdfToNpz(base_path, data_dir):
                         help="File path to the trained model used to estimate walking speeds.")
     args = parser.parse_args()
 
-    # Select channel
     # Select channel
     select_ch = args.select_ch
 
@@ -105,8 +104,9 @@ def EdfToNpz(base_path, data_dir):
         f.close()
         ann_start_dt = datetime.strptime(
             h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
-
+        
         print("raw_start_dt ", raw_start_dt, "  ann_start_dt ", ann_start_dt)
+
         # Assert that raw and annotation files start at the same time
         assert raw_start_dt == ann_start_dt
 
@@ -114,9 +114,9 @@ def EdfToNpz(base_path, data_dir):
         remove_idx = []    # indicies of the data that will be removed
         labels = []        # indicies of the data that have labels
         label_idx = []
-        print("****** ann ", ann)
-        for a in ann:
-            onset_sec, duration_sec, ann_char = a[0]
+        print("///// ann[0] ", ann[0])
+        for a in ann[0]:
+            onset_sec, duration_sec, ann_char = a
             ann_str = "".join(ann_char)
             label = ann2label[ann_str]
             if label != UNKNOWN:
@@ -185,35 +185,25 @@ def EdfToNpz(base_path, data_dir):
         y = labels.astype(np.int32)
 
         assert len(x) == len(y)
+
+        # Select on sleep periods
         w_edge_mins = 30
-        start_idx = 0
-        end_idx = len(y)
-        # if(len(y) > 1):
-        # # Select on sleep periods
-        #     nw_idx = np.where(y != stage_dict["W"])[0]
-        #     start_idx = nw_idx[0] - (w_edge_mins * 2)
-        #     end_idx = nw_idx[-1] + (w_edge_mins * 2)
-        #     if start_idx < 0:
-        #         start_idx = 0
-        #     if end_idx >= len(y):
-        #         end_idx = len(y) - 1
-        
-        select_idx = np.arange(start_idx, end_idx)
-        print("select_idx ", select_idx)
+        nw_idx = np.where(y != stage_dict["W"])[0]
+        start_idx = nw_idx[0] - (w_edge_mins * 2)
+        end_idx = nw_idx[-1] + (w_edge_mins * 2)
+        if start_idx < 0:
+            start_idx = 0
+        if end_idx >= len(y):
+            end_idx = len(y) - 1
+        select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
         print("***** edfnpz x  ", x )
         y = y[select_idx]
-        print("y end ", y)
         print(("Data after selection: {}, {}".format(x.shape, y.shape)))
 
         # Save
         filename = ntpath.basename("test_data").replace("-PSG.edf", ".npz")
-
-        data = np.load('/home/rosa/val/SC4012E0.npz', allow_pickle=True)
-        # y = y[select_idx]
-        # x = x[select_idx]
-        # print("x npz ", data['x'][914:915])
 
         save_dict = {
             "x": x,
@@ -226,7 +216,7 @@ def EdfToNpz(base_path, data_dir):
         np.savez(os.path.join(base_path, data_dir, filename), **save_dict)
 
 
-def EdfToNpz_NoLabels(base_path, data_dir):
+def EdfToFullNpz_NoLabels(base_path, data_dir):
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
                         help="Directory where to save outputs.")

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-data = np.load('/home/rosa/val/SC4162E0.npz', allow_pickle=True)
+data = np.load('/home/rosa/val/SC4012E0.npz', allow_pickle=True)
 y = data['y']
 x = data['x']
 
@@ -27,12 +27,12 @@ x = data['x']
 # print("x[1:2] ", len(x[490:500]))
 # print("y_selected[:1] ", y[490:500]) TS 100, good 4162
 
-print("x[1:2] ", len(x[490:500]))
-print("y_selected[:1] ", y[490:500])
+print("x[1:2] ", x[914:925])
+print("y_selected[:1] ", y[914:925])
 
 save_dict = {
-            "x": x[490:500],
-            "y": y[490:500],
+            "x": x[914:915],
+            "y": y[914:915],
             "fs": data["fs"],
             "ch_label": data["ch_label"],
             "header_raw": data["header_raw"],
