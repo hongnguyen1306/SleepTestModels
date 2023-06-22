@@ -215,41 +215,38 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
     f1_score = 0
     acc = 0
     preds = np.array([])
+    print("Tiny load...1")
 
     if act_func == 'ReLU':
         model_path = "input/tiny81.9ReLU"
     else:
         model_path = "input/BestModelGELU"
 
+    print("Tiny load...2")
+    
+
     print("model_path ", model_path)
+    print("Tiny load...3")
+
     if labels==True:
         acc, f1_score, preds = predict_tiny(
             config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
-            model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
-            log_file='output.log',
             use_best=False,
             act_func = act_func
         )
     else:
         preds = predict_tiny_nolabels(
             config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
-            model_dir=str(os.path.join(base_path, model_path)),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
-            log_file='output.log',
             use_best=False,
             act_func = act_func
         )
     acc = round(acc * 100, 2)
     f1_score = round(f1_score * 100, 2)
     print("acc , f1 ", acc , " ", f1_score)
-        # Convert numpy arrays to pandas dataframes and transpose them
-
-    # Define the file paths for saving the Excel files
-    
-
     return acc, f1_score, preds
 
 def load_model_Deepsleep(data_path, base_path, labels=True):
@@ -331,24 +328,24 @@ def main():
     #         # Save the dataframe to the Excel file
     #         results_df.to_excel(excel_file_path, index=False)
 
-    test_path = "data/test_data_10.npz"
+    test_path = "data/test_data.npz"
 
     generate_withlabels(base_path, test_path)
-    test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
+    test_pt = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=True)
 
     # print("\n*****    ReLU    ******")
     loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
-    # loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+    loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
 
-    # # print("\n*****    GELU    ******")
-    # loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
-    # loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+    # print("\n*****    GELU    ******")
+    loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
 
 
-    # acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
-    # acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
-    # acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
-    # acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
+    acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+    acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
+    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
+    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
 
         
 

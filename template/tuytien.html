@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title></title>
+    <title></title>
     <style>
         body {
             margin: 0;
@@ -12,35 +13,34 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
         }
 
         .data-raw {
-            width: 96%;
+            width: 94%;
             text-align: center;
             background-color: white;
             border-radius: 10px;
-            /* margin-right: 10px; */
             margin-bottom: 20px;
         }
 
         .img-data-raw {
-            width: 98%;
+            width: 94%;
             object-fit: contain;
             margin-bottom: 30px;
             margin-top: 6px;
         }
 
         .activation {
-            width: 96%;
+            width: 94%;
             text-align: center;
             background-color: white;
             border-radius: 10px;
         }
 
-        .image-activaion {
-            width: 98%;
+        .image-activation {
+            width: 78%;
             object-fit: contain;
             margin-top: 20px;
             margin-bottom: 30px;
@@ -52,8 +52,8 @@
             justify-content: space-between;
             flex-direction: row;
         }
- 
-        input [type="checkbox"]{
+
+        input [type="checkbox"] {
             padding: 8px 10px;
             margin: 8px 0px;
             box-sizing: border-box;
@@ -72,7 +72,7 @@
         }
 
         .model {
-            width: 96%;
+            width: 94%;
             text-align: center;
             margin-top: 50px;
             background-color: white;
@@ -86,25 +86,36 @@
             margin-top: 30px;
             margin-bottom: 100px;
         }
-
     </style>
 </head>
 
 <body>
     <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
     <!-- <div class="data-and-activation"> -->
-        <div class="data-raw">
-            <h2>Hình ảnh dữ liệu edf thô</h2>
-            <img class="img-data-raw" src="/static/Fpz_Cz.png" alt="">
+    <div class="data-raw">
+        <h2>Hình ảnh dữ liệu edf thô</h2>
+        {% for file in image_names %}
+        {% if file.endswith('Fpz_Cz.png') %}
+        <div class="img-chart">
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
-        <div class="activation">
-            <label for="select_activation">Chọn hàm kích hoạt:</label>
-            <form name="select_activation" id="select_activation">
-                <input type="checkbox" value="relu">ReLU</input>
-                <input type="checkbox" value="gelu">GELU</input>
-            </form>
-            <img class="image-activaion" src="/static/result_FB6F5N-acc.png" alt="">
+        {% endif %}
+        {% endfor %}
+    </div>
+    <div class="activation">
+        <label for="select_activation">Chọn hàm kích hoạt:</label>
+        <form name="select_activation" id="select_activation">
+            <input type="checkbox" value="relu">ReLU</input>
+            <input type="checkbox" value="gelu">GELU</input>
+        </form>
+        {% for file in image_names %}
+        {% if file.endswith('acc.png') %}
+        <div class="img-chart">
+            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
+        {% endif %}
+        {% endfor %}
+    </div>
 
     </div>
     <div class="model">
@@ -116,8 +127,29 @@
             <input type="checkbox" value="ts-tcc">TS-TCC</input>
             <input type="checkbox" value="tiny">TinySleepNet</input>
         </form>
+        {% for file in image_names %}
+        {% if file.endswith('true_labels_legend.png') %}
+        <div class="img-chart">
+            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %}
 
-        <img class="image-model" src="/static/predsKDCGJY-TinySleepNet.png" alt="">
+        {% for file in image_names %}
+        {% if file.endswith('true_line.png') %}
+        <div class="img-chart">
+            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {% for file in image_names %}
+        {% if file.endswith('sum-result.png') %}
+        <div class="chart">
+            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
 </body>
 
