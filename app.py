@@ -205,7 +205,7 @@ def evaluate():
         ax.set_xlabel('Epochs')
         ax.set_ylabel('Sleep stage')
 
-        # ax.set_xticklabels('Epochs', fontsize=10)
+        ax.set_xticklabels('Epochs', fontsize=10)
         ax.set_yticks(range(2))
         ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'], fontsize=10)
 
