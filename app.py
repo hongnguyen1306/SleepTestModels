@@ -182,7 +182,7 @@ def evaluate():
 
     # Vẽ chú thích
     plt.figure(figsize=(10, 1))
-    plt.axis('off')
+    # plt.axis('off')
     plt.text(0, 0.5, 'Danh sách nhãn đúng là: ' + str(trgs), fontsize=12, verticalalignment='center')
     plt.savefig(os.path.join(os.path.join(base_path, "static", 'true_labels_legend.png')))
     plt.close()
@@ -205,7 +205,7 @@ def evaluate():
         ax.set_xlabel('Epochs')
         ax.set_ylabel('Sleep stage')
 
-        ax.set_xticklabels('Epochs', fontsize=10)
+        # ax.set_xticklabels('Epochs', fontsize=10)
         ax.set_yticks(range(2))
         ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'], fontsize=10)
 
@@ -244,5 +244,5 @@ def evaluate():
     return render_template('dev.html', image_names=image_names)
 
 if __name__ == '__main__':
-    app.run(port=1113)
+    app.run(port=4567)
 
