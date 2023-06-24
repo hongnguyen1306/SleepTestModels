@@ -3,6 +3,7 @@
 
 <head>
     <title></title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             margin: 0;
@@ -119,14 +120,6 @@
 
     </div>
     <div class="model">
-        <label for="select-model">Chọn mô hình</label>
-        <form name="select-model" id="select-model">
-            <input type="checkbox" value="attn">AttnSleep</input>
-            <input type="checkbox" value="ca-tcc">CA-TCC</input>
-            <input type="checkbox" value="deepsleep">DeepSleepNet</input>
-            <input type="checkbox" value="ts-tcc">TS-TCC</input>
-            <input type="checkbox" value="tiny">TinySleepNet</input>
-        </form>
         {% for file in image_names %}
         {% if file.endswith('true_labels_legend.png') %}
         <div class="img-chart">
@@ -143,14 +136,140 @@
         {% endif %}
         {% endfor %}
 
-        {% for file in image_names %}
+        <label for="select-model">Chọn mô hình</label>
+        <form name="select-model" id="select-model">
+            <input type="checkbox" name="model" id="modelAttn" value=1 onchange="updateChart()">AttnSleep</input>
+            <input type="checkbox" name="model" id="modelCa-tcc" value=2 onchange="updateChart()">CA-TCC</input>
+            <input type="checkbox" name="model" id="modelDeepSleep" value=3 onchange="updateChart()">DeepSleepNet</input>
+            <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
+            <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
+        </form>
+
+        <canvas id="myChart"></canvas>
+
+        <!-- {% for file in image_names %}
         {% if file.endswith('sum-result.png') %}
         <div class="chart">
             <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
-        {% endfor %}
+        {% endfor %} -->
     </div>
 </body>
 
 </html>
+
+<script>
+    myChart = null
+    function updateChart() {
+        var selectedValues = [];
+        var checkboxes = document.getElementsByName("model");
+        var alertMessage = "";
+
+        // Lặp qua các checkbox và lấy giá trị của các checkbox đã được chọn
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                var value = checkboxes[i].value;
+                selectedValues.push(value);
+                alertMessage += value + "\n";
+            }
+        }
+
+        // Hiển thị giá trị các checkbox đã chọn trong một thông báo cảnh báo
+        console.log("Selected values:\n" + alertMessage);
+        // Gửi danh sách giá trị đã chọn đến máy chủ Flask để tạo biểu đồ
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onload = () => {
+        // print JSON response
+        if (xhttp.status >= 200 && xhttp.status < 300) {
+            // parse JSON
+            const response = JSON.parse(xhttp.responseText)
+            console.log(response)
+            drawChart(response)
+        }
+        }
+
+        xhttp.open("POST", "/update-chart", true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.send(JSON.stringify(selectedValues));
+    }
+    
+    function drawChart(data) {
+        var ctx = document.getElementById('myChart').getContext('2d');
+        if (!data || Object.keys(data).length === 0) 
+        {
+            console.error('Invalid data');
+            return;
+        }
+
+    // Hủy biểu đồ hiện tại nếu đã tồn tại
+        if (myChart) {
+            myChart.destroy();
+        }
+        console.log(data.labels)
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.values(data.labels),
+                datasets: Object.values(data.data).map(([key, values], index) => ({
+                    label: "Motherfucker",
+                    data: values,
+                    borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
+                    fill: false
+                }))
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    }
+                }
+            }
+        });
+
+        // Kiểm tra nếu biểu đồ đã tồn tại thì hủy nó trước khi vẽ lại
+        // if (typeof myChart !== 'undefined') {
+        //     myChart.destroy();
+        // }
+    }
+
+    document.addEventListener("DOMContentLoaded", function(event) {
+    // Hàm gửi yêu cầu AJAX để cập nhật dữ liệu biểu đồ
+        function updateChart(selectedValues) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var chartData = JSON.parse(this.responseText);
+                    drawChart(chartData);
+                }
+            };
+
+            // Tạo một chuỗi JSON từ các giá trị được chọn
+            var requestData = JSON.stringify(selectedValues);
+
+            xhttp.open("POST", "/update-chart", true);
+            xhttp.setRequestHeader("Content-type", "application/json");
+            xhttp.send(requestData);
+            
+        }
+
+        // Lắng nghe sự kiện onchange cho các phần tử HTML
+        var checkboxes = document.querySelectorAll("input[type='checkbox']");
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener("change", function() {
+                // Lấy danh sách các giá trị được chọn
+                var selectedValues = [];
+                checkboxes.forEach(function(checkbox) {
+                    if (checkbox.checked) {
+                        selectedValues.push(checkbox.value);
+                    }
+                });
+                // Cập nhật dữ liệu biểu đồ
+                updateChart(selectedValues);
+            });
+        });
+        updateChart([]);
+    });
+</script>

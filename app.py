@@ -1,5 +1,7 @@
 import glob
-from flask import Flask, request, render_template, make_response
+from flask import Flask, request, render_template, make_response, jsonify
+# from flask_socketio import SocketIO, emit
+import json
 import os
 import numpy as np
 import pandas as pd
@@ -22,6 +24,7 @@ from dataloader.edf_to_full_npz import EdfToFullNpz
 base_path = ""
 data_path = "data"
 app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
+# socketio = SocketIO(app)
 
 def delete_files_with_extension(folder_path, extension):
     for file_name in os.listdir(folder_path):
@@ -76,15 +79,6 @@ def raw_chart(base_path, data_path, n_epochs):
     plt.savefig(os.path.join(base_path, "static", filename))
     plt.close()
 
-    # fig = plt.figure(figsize=(10, 3))
-    # ax = fig.add_subplot(1, 1, 1)
-    # plt.plot(x, y)
-    # plt.xlabel('Time')
-    # plt.ylabel('Amplitude')
-    # plt.title('Channel: ' + channel_names[0] + ' (Segment: ' + str(start_time) + 's to ' + str(end_time) + 's)')
-    # plt.savefig(os.path.join(base_path, "static", 'Fpz_Cz.png'))
-    # plt.close()
-
 def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, name_chart):
     random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     filename = 'preds' + random_number + '-' + name_chart + '.png'
@@ -109,17 +103,6 @@ def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, n
     plt.savefig(os.path.join('static', filename))
     plt.close()
 
-
-    # fig = plt.figure(figsize=(10, 5))
-    # ax = fig.add_subplot(1, 1, 1)
-    # ax.plot(preds, color='green')
-    # ax.set_title(name_chart)
-    # ax.set_xlabel('30-s Epoch')
-    # ax.set_ylabel('Sleep stage')
-    # ax.set_yticks(range(5))
-    # ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
-    # plt.savefig(os.path.join(base_path, "static", filename)) 
-    # plt.close()
 
 @app.route('/')
 def home():
@@ -176,7 +159,7 @@ def evaluate():
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
     uploaded_files = request.files.getlist('file')
-    print("\n************* uploaded_files ", uploaded_files)
+
     for file in uploaded_files:
         filename = secure_filename(file.filename)
         print("file ", filename)
@@ -293,17 +276,138 @@ def evaluate():
         plt.savefig(os.path.join(os.path.join(base_path, "static", 'true_labels_legend.png')))
         plt.close()
         preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny_ReLU, outs_deepsleep, 'sum-result')
-        # preds_chart(outs_TS, 'TS-TCC')
-        # preds_chart(outs_CA, 'CA-TCC')
-        # preds_chart(outs_attn, 'Attn')
-        # preds_chart(outs_tiny_ReLU, 'TinySleepNet')
-        # preds_chart(outs_deepsleep, 'DeepSleepNet')
 
+
+        ###==================================================================================
+   
+    # Biến lưu trữ giá trị ban đầu cho biểu đồ
+
+    # initial_chart_data = {
+    #     1: outs_attn.tolist(),
+    #     2: outs_CA.tolist(),
+    #     3: outs_deepsleep.tolist(),
+    #     4: outs_TS.tolist(),
+    #     5: outs_tiny_ReLU.tolist()
+    # }
+
+    initial_chart_data = {
+        1: ["AttnSleep"],
+        2: ["CA-TCC"],
+        3: ["DeepSleepNet"],
+        4: ["TS-TCC"],
+        5: ["TinySleepNet"]
+    }
+
+    # Route cho trang HTML
+    @app.route('/tuytien')
+    def index():
+        return render_template('tuytien.html')
+
+    # Route để cung cấp dữ liệu biểu đồ ban đầu
+    @app.route('/initial-chart-data', methods=['GET'])
+    def get_initial_chart_data():
+        return jsonify(initial_chart_data)
+    
+
+    
+    @app.route('/update-chart', methods=['POST'])
+    def update_chart():
+        selected_values = request.get_json()
+        print("hhh", selected_values)
+        labels = ['W', 'N1', 'N2', 'N3', 'REM']
+
+        # plt.figure(figsize=(25, 5))
+
+        # Update the initial_chart_data based on selected checkboxes
+        for value in selected_values:
+            if value == "1":
+                temp = outs_attn.tolist()
+                for index in range(0,len(temp)):
+                    if temp[index]==0:
+                       temp[index]='W'
+                    elif temp[index]==1:
+                        temp[index]='N1'
+                    elif temp[index]==2:
+                        temp[index]='N2'
+                    elif temp[index]==3:
+                        temp[index]='N3'
+                    elif temp[index]==4:
+                       temp[index]='N4'
+
+                initial_chart_data["AttnSleep"] = temp
+            elif value == "2":
+                temp = outs_CA.tolist()
+                for index in range(0,len(temp)):
+                    if temp[index]==0:
+                       temp[index]='W'
+                    elif temp[index]==1:
+                        temp[index]='N1'
+                    elif temp[index]==2:
+                        temp[index]='N2'
+                    elif temp[index]==3:
+                        temp[index]='N3'
+                    elif temp[index]==4:
+                       temp[index]='N4'
+
+                initial_chart_data["CA-TCC"] = temp
+            elif value == "3":
+                temp = outs_deepsleep.tolist()
+                for index in range(0,len(temp)):
+                    if temp[index]==0:
+                        temp[index]='W'
+                    elif temp[index]==1:
+                        temp[index]='N1'
+                    elif temp[index]==2:
+                        temp[index]='N2'
+                    elif temp[index]==3:
+                        temp[index]='N3'
+                    elif temp[index]==4:
+                        temp[index]='N4'
+                initial_chart_data["DeepSleepNet"] = temp
+            elif value == "4":
+                temp = outs_TS.tolist()
+                for index in range(0,len(temp)):
+                    if temp[index]==0:
+                       temp[index]='W'
+                    elif temp[index]==1:
+                        temp[index]='N1'
+                    elif temp[index]==2:
+                        temp[index]='N2'
+                    elif temp[index]==3:
+                        temp[index]='N3'
+                    elif temp[index]==4:
+                       temp[index]='N4'
+                initial_chart_data["TS-TCC"] = temp
+            elif value == "5":
+                temp = outs_tiny_ReLU.tolist()
+                for index in range(0,len(temp)):
+                    if temp[index]==0:
+                       temp[index]='W'
+                    elif temp[index]==1:
+                        temp[index]='N1'
+                    elif temp[index]==2:
+                        temp[index]='N2'
+                    elif temp[index]==3:
+                        temp[index]='N3'
+                    elif temp[index]==4:
+                       temp[index]='N4'
+                initial_chart_data["TinySleepNet"] = temp
+
+        print("huhu", initial_chart_data)
+        # plt.xlabel('Epochs')
+        # plt.ylabel('Sleep Stage')
+        # plt.title('Selected Options')
+        # plt.legend(['W', 'N1', 'N2', 'N3', 'REM'])
+
+        # Xóa biểu đồ trong bộ nhớ để tránh trùng lặp
+        # plt.clf()
+        print(jsonify({'labels': labels, 'data': initial_chart_data}))
+        return jsonify({'labels': labels, 'data': initial_chart_data})
         
-        image_names = os.listdir('static/')
-        image_names = [img for img in image_names if img.endswith('.png')]
-        return render_template('tuytien.html', image_names=image_names)
+    image_names = os.listdir('static/')
+    image_names = [img for img in image_names if img.endswith('.png')]
+    return render_template('tuytien.html', image_names=image_names)
 
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(port=8080)
 
