@@ -3,6 +3,41 @@
 
 <head>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .data-raw {
+            width: 94%;
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .img-data-raw {
+            width: 94%;
+            object-fit: contain;
+            margin-bottom: 30px;
+            margin-top: 6px;
+        }
+
+        .result-label {
+            background-color: white;
+            width: 50%;
+            border-radius: 10px;
+            padding: 30px;
+        }
+
         .label-container {
             display: flex;
             align-items: center;
@@ -20,6 +55,7 @@
 
         .true-label {
             background-color: #c0f0c0;
+            margin-bottom: 20px;
         }
 
         .predicted-label {
@@ -32,21 +68,40 @@
     <h1>Hình ảnh dữ liệu EDF thô</h1>
     {% for file in image_names %}
     {% if file.endswith('Fpz_Cz.png') %}
-    <div>
-        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    <div class="data-raw">
+        <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
     </div>
     {% endif %}
     {% endfor %}
     <br>
     <h1>Kết quả nhận biết giai đoạn giấc ngủ</h1>
-    <div class="label-container">
-        <div class="label true-label">True Label: {{ results.true_label }}</div>
+    <div class="result-label"> 
+        <div class="label-container">
+            <div class="label true-label">Giai đoạn nhận biết bởi chuyên gia (nhãn đúng): {{ results.true_label }}</div>
+        </div>
+        <h3>Nhãn dự đoán:</h3>
+        {% for method, outs in results.items() %}
+            <div class="label-container">
+                {% if method == "outs_deepsleep"  and method != "true_label": %}
+                <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
+                {% elif method == "outs_tiny_ReLU"  and method != "true_label": %}
+                <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
+                {% elif method == "outs_attn"  and method != "true_label": %}
+                <div class="label predicted-label">AttnSleep : {{ outs }}</div>
+                {% elif method == "TS-TCC" and method != "true_label": %}
+                <div class="label predicted-label">TS-TCC: {{ outs }}</div>
+                {% elif method == "CA-TCC" and method != "true_label": %}
+                <div class="label predicted-label">CA-TCC: {{ outs }}</div>
+                {% elif method == "outs_tiny_GELU" and method != "true_label": %}
+                <div class="label predicted-label">TinySleepNet (GELU): {{ outs }}</div>
+                {% elif method == "TS-TCC_gelu" and method != "true_label": %}
+                <div class="label predicted-label">TS-TCC (GELU): {{ outs }}</div>
+                {% elif method == "CA-TCC_gelu" and method != "true_label": %}
+                <div class="label predicted-label">CA-TCC (GELU): {{ outs }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
-    {% for method, outs in results.items() %}
-    <div class="label-container">
-        <div class="label predicted-label">Predicted Label ({{ method }}): {{ outs }}</div>
-    </div>
-    {% endfor %}
 </body>
 
 </html>

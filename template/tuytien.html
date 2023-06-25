@@ -85,8 +85,16 @@
             width: 98%;
             object-fit: contain;
             margin-top: 30px;
-            margin-bottom: 100px;
+            margin-bottom: 50px;
         }
+
+        .canvas-chart {
+            text-align: center;
+            width: 100%;
+            height: 50vh;
+            object-fit: fill;
+        }
+
     </style>
 </head>
 
@@ -121,17 +129,17 @@
     </div>
     <div class="model">
         {% for file in image_names %}
-        {% if file.endswith('true_labels_legend.png') %}
+        {% if file.endswith('true_line.png') %}
         <div class="img-chart">
-            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
         {% endfor %}
 
         {% for file in image_names %}
-        {% if file.endswith('true_line.png') %}
+        {% if file.endswith('true_labels_legend.png') %}
         <div class="img-chart">
-            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
         {% endfor %}
@@ -144,16 +152,11 @@
             <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
             <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
         </form>
-
-        <canvas id="myChart"></canvas>
-
-        <!-- {% for file in image_names %}
-        {% if file.endswith('sum-result.png') %}
-        <div class="chart">
-            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        <div id="label-predict"></div>
+        <div class="canvas-chart">
+            <canvas id="myChart"></canvas>
         </div>
-        {% endif %}
-        {% endfor %} -->
+
     </div>
 </body>
 
@@ -197,42 +200,111 @@
     
     function drawChart(data) {
         var ctx = document.getElementById('myChart').getContext('2d');
+        ctx.canvas.width = 1200;
+        ctx.canvas.height = 300;
         if (!data || Object.keys(data).length === 0) 
         {
             console.error('Invalid data');
             return;
         }
 
+        console.log("datahaha", data)
+        // const labelPredict = document.getElementById('label-predict');
+        // data.forEach(item => {
+        // // Tạo phần tử label
+        // const labelElement = document.createElement('p');
+        // labelElement.textContent = item.label;
+        // labelPredict.appendChild(labelElement);
+
+        // // Tạo phần tử data
+        // const dataElement = document.createElement('p');
+        // dataElement.textContent = item.values.join(', ');
+        // labelPredict.appendChild(dataElement);
+        // });
+
     // Hủy biểu đồ hiện tại nếu đã tồn tại
         if (myChart) {
             myChart.destroy();
         }
-        console.log(data.labels)
+
+        const datasets = Object.entries(data.data).map(([label, values]) => {
+            const dataCounts = values.map((value, index) => {
+                switch (value) {
+                    case 'W':
+                        return 1;
+                    case 'N1':
+                        return 2;
+                    case 'N2':
+                        return 3;
+                    case 'N3':
+                        return 4;
+                    case 'REM':
+                        return 5;
+                    default:
+                        return 0;
+                }
+            });
+            
+            return {
+                label: label,
+                data: dataCounts,
+                borderColor: ["blue", "green", "chocolate", "gold", "orange"],
+                fill: false
+            };
+        });
+
+        const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
+        datasets.sort((a, b) => {
+            const sumA = a.data.reduce((sum, value) => sum + value, 0);
+            const sumB = b.data.reduce((sum, value) => sum + value, 0);
+            return sumB - sumA;
+        });
+
         myChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Object.values(data.labels),
-                datasets: Object.values(data.data).map(([key, values], index) => ({
-                    label: "Motherfucker",
-                    data: values,
-                    borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
-                    fill: false
-                }))
+                labels: labels_x,
+                datasets: datasets,
             },
             options: {
                 responsive: true,
                 scales: {
-                    y: {
+                    x: {
                         beginAtZero: true,
+                        ticks: {
+                            fontSize: 12, // Kích thước chữ cho trục Ox
+                        },
+                        // outerWidth: 400
+                    },
+                    y: {
+                        min: 1,  // Giá trị tối thiểu của trục Oy
+                        max: 5,  // Giá trị tối đa của trục Oy
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value, index, values) {
+                                switch (value) {
+                                    case 1:
+                                        return 'W';
+                                    case 2:
+                                        return 'N1';
+                                    case 3:
+                                        return 'N2';
+                                    case 4:
+                                        return 'N3';
+                                    case 5:
+                                        return 'REM';
+                                    default:
+                                        return '';
+                                }
+                            },
+                            fontSize: 12, 
+                            outerHeight: 30,
+                        }
                     }
                 }
             }
         });
 
-        // Kiểm tra nếu biểu đồ đã tồn tại thì hủy nó trước khi vẽ lại
-        // if (typeof myChart !== 'undefined') {
-        //     myChart.destroy();
-        // }
     }
 
     document.addEventListener("DOMContentLoaded", function(event) {
@@ -242,6 +314,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     var chartData = JSON.parse(this.responseText);
+                    // console.log("chardata", chartData.results)
                     drawChart(chartData);
                 }
             };

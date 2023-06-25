@@ -24,9 +24,9 @@
 
     .home {
       width: 760px;
-      height: 360px;
+      height: 320px;
       border-radius: 50px;
-      padding: 20px 100px 20px;
+      padding: 0px 100px 20px;
       border: 2px dashed black;
       display: flex;
       align-items: center;
@@ -113,13 +113,13 @@
   <h1>CÔNG CỤ PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ</h1>
   <div class="home">
     <form action="/evaluate" method="POST" enctype="multipart/form-data">
-      <br>
+      <!-- <br>
       <label for="epoch_file">Chọn tệp epoch:</label>
       <select name="epoch_file" id="epoch_file">
         <option value="1">1 epoch</option>
         <option value="10">10 epochs</option>
         <option value="20">20 epochs</option>
-      </select>
+      </select> -->
       <br>
       <label for="edf_file1">Chọn tệp edf:</label>
       <input class="input_edf" type="file" id="edf_file1" name="file">
@@ -127,7 +127,7 @@
       <label for="edf_file2">Chọn tệp hypnogram:</label>
       <input class="input_hyn" type="file" id="edf_file2" name="file">
       <input type="submit" value="Tải lên">
-      <img src="./template/upload.png" alt="" />
+      <!-- <img src="./template/upload.png" alt="" /> -->
     </form>
   </div>
 </body>

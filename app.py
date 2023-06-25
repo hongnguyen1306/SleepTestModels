@@ -21,6 +21,14 @@ from dataloader.edf_to_npz import EdfToNpz, EdfToNpz_NoLabels
 from dataloader.edf_to_full_npz import EdfToFullNpz
 
 
+initial_chart_data = {
+        # "AttnSleep": 0,
+        # "CA-TCC": 0,
+        # "DeepSleepNet": 0,
+        # "TS-TCC": 0,
+        # "TinySleepNet": 0
+    }
+
 base_path = ""
 data_path = "data"
 app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
@@ -231,6 +239,7 @@ def evaluate():
 
         image_names = os.listdir('static/')
         image_names = [img for img in image_names if img.endswith('.png')]
+
         return render_template('predictOneLabel.html', results=results, image_names=image_names)
     else:
         methods = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
@@ -279,24 +288,6 @@ def evaluate():
 
 
         ###==================================================================================
-   
-    # Biến lưu trữ giá trị ban đầu cho biểu đồ
-
-    # initial_chart_data = {
-    #     1: outs_attn.tolist(),
-    #     2: outs_CA.tolist(),
-    #     3: outs_deepsleep.tolist(),
-    #     4: outs_TS.tolist(),
-    #     5: outs_tiny_ReLU.tolist()
-    # }
-
-    initial_chart_data = {
-        1: ["AttnSleep"],
-        2: ["CA-TCC"],
-        3: ["DeepSleepNet"],
-        4: ["TS-TCC"],
-        5: ["TinySleepNet"]
-    }
 
     # Route cho trang HTML
     @app.route('/tuytien')
@@ -308,8 +299,6 @@ def evaluate():
     def get_initial_chart_data():
         return jsonify(initial_chart_data)
     
-
-    
     @app.route('/update-chart', methods=['POST'])
     def update_chart():
         selected_values = request.get_json()
@@ -317,6 +306,7 @@ def evaluate():
         labels = ['W', 'N1', 'N2', 'N3', 'REM']
 
         # plt.figure(figsize=(25, 5))
+        initial_chart_data = {}
 
         # Update the initial_chart_data based on selected checkboxes
         for value in selected_values:
@@ -332,7 +322,7 @@ def evaluate():
                     elif temp[index]==3:
                         temp[index]='N3'
                     elif temp[index]==4:
-                       temp[index]='N4'
+                       temp[index]='REM'
 
                 initial_chart_data["AttnSleep"] = temp
             elif value == "2":
@@ -347,7 +337,7 @@ def evaluate():
                     elif temp[index]==3:
                         temp[index]='N3'
                     elif temp[index]==4:
-                       temp[index]='N4'
+                       temp[index]='REM'
 
                 initial_chart_data["CA-TCC"] = temp
             elif value == "3":
@@ -362,7 +352,7 @@ def evaluate():
                     elif temp[index]==3:
                         temp[index]='N3'
                     elif temp[index]==4:
-                        temp[index]='N4'
+                        temp[index]='REM'
                 initial_chart_data["DeepSleepNet"] = temp
             elif value == "4":
                 temp = outs_TS.tolist()
@@ -376,7 +366,7 @@ def evaluate():
                     elif temp[index]==3:
                         temp[index]='N3'
                     elif temp[index]==4:
-                       temp[index]='N4'
+                       temp[index]='REM'
                 initial_chart_data["TS-TCC"] = temp
             elif value == "5":
                 temp = outs_tiny_ReLU.tolist()
@@ -390,17 +380,11 @@ def evaluate():
                     elif temp[index]==3:
                         temp[index]='N3'
                     elif temp[index]==4:
-                       temp[index]='N4'
+                       temp[index]='REM'
                 initial_chart_data["TinySleepNet"] = temp
 
         print("huhu", initial_chart_data)
-        # plt.xlabel('Epochs')
-        # plt.ylabel('Sleep Stage')
-        # plt.title('Selected Options')
-        # plt.legend(['W', 'N1', 'N2', 'N3', 'REM'])
 
-        # Xóa biểu đồ trong bộ nhớ để tránh trùng lặp
-        # plt.clf()
         print(jsonify({'labels': labels, 'data': initial_chart_data}))
         return jsonify({'labels': labels, 'data': initial_chart_data})
         
