@@ -115,31 +115,58 @@ def EdfToFullNpz(base_path, data_dir):
         labels = []        # indicies of the data that have labels
         label_idx = []
         print("///// ann[0] ", ann[0])
-        for a in ann[0]:
-            onset_sec, duration_sec, ann_char = a
-            ann_str = "".join(ann_char)
-            label = ann2label[ann_str]
-            if label != UNKNOWN:
-                if duration_sec % EPOCH_SEC_SIZE != 0:
-                    raise Exception("Something wrong")
-                duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
-                label_epoch = np.ones(duration_epoch, dtype=np.int) * label
-                labels.append(label_epoch)
-                idx = int(onset_sec * sampling_rate) + \
-                    np.arange(duration_sec * sampling_rate, dtype=np.int)
-                label_idx.append(idx)
+        if len(ann[0]) > 1:
+            for a in ann[0]:
+                onset_sec, duration_sec, ann_char = a
+                ann_str = "".join(ann_char)
+                label = ann2label[ann_str]
+                if label != UNKNOWN:
+                    if duration_sec % EPOCH_SEC_SIZE != 0:
+                        raise Exception("Something wrong")
+                    duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
+                    label_epoch = np.ones(duration_epoch, dtype=np.int) * label
+                    labels.append(label_epoch)
+                    idx = int(onset_sec * sampling_rate) + \
+                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    label_idx.append(idx)
 
-                print("Include onset:{}, duration:{}, label:{} ({})".format(
-                    onset_sec, duration_sec, label, ann_str
-                ))
-            else:
-                idx = int(onset_sec * sampling_rate) + \
-                    np.arange(duration_sec * sampling_rate, dtype=np.int)
-                remove_idx.append(idx)
+                    print("Include onset:{}, duration:{}, label:{} ({})".format(
+                        onset_sec, duration_sec, label, ann_str
+                    ))
+                else:
+                    idx = int(onset_sec * sampling_rate) + \
+                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    remove_idx.append(idx)
 
-                print("Remove onset:{}, duration:{}, label:{} ({})".format(
-                    onset_sec, duration_sec, label, ann_str
-                ))
+                    print("Remove onset:{}, duration:{}, label:{} ({})".format(
+                        onset_sec, duration_sec, label, ann_str
+                    ))
+        else:
+            for a in ann:
+                onset_sec, duration_sec, ann_char = a[0]
+                ann_str = "".join(ann_char)
+                label = ann2label[ann_str]
+                if label != UNKNOWN:
+                    if duration_sec % EPOCH_SEC_SIZE != 0:
+                        raise Exception("Something wrong")
+                    duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
+                    label_epoch = np.ones(duration_epoch, dtype=np.int) * label
+                    labels.append(label_epoch)
+                    idx = int(onset_sec * sampling_rate) + \
+                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    label_idx.append(idx)
+
+                    print("Include onset:{}, duration:{}, label:{} ({})".format(
+                        onset_sec, duration_sec, label, ann_str
+                    ))
+                else:
+                    idx = int(onset_sec * sampling_rate) + \
+                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    remove_idx.append(idx)
+
+                    print("Remove onset:{}, duration:{}, label:{} ({})".format(
+                        onset_sec, duration_sec, label, ann_str
+                    ))
         labels = np.hstack(labels)
 
         print("before remove unwanted: {}".format(
@@ -188,13 +215,18 @@ def EdfToFullNpz(base_path, data_dir):
 
         # Select on sleep periods
         w_edge_mins = 30
-        nw_idx = np.where(y != stage_dict["W"])[0]
-        start_idx = nw_idx[0] - (w_edge_mins * 2)
-        end_idx = nw_idx[-1] + (w_edge_mins * 2)
-        if start_idx < 0:
-            start_idx = 0
-        if end_idx >= len(y):
-            end_idx = len(y) - 1
+        start_idx = 0
+        end_idx = len(y) - 1
+        print("len y ", len(y))
+        if len(y) > 30:
+            nw_idx = np.where(y != stage_dict["W"])[0]
+            start_idx = nw_idx[0] - (w_edge_mins * 2)
+            end_idx = nw_idx[-1] + (w_edge_mins * 2)
+            if start_idx < 0:
+                start_idx = 0
+            if end_idx >= len(y):
+                end_idx = len(y) - 1
+        
         select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
