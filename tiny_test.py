@@ -50,6 +50,7 @@ def predict_tiny_nolabels(
     act_func='ReLU',
 ):
 
+    print("INNNNNN")
     spec = importlib.util.spec_from_file_location("*", config_file)
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
@@ -78,7 +79,6 @@ def predict_tiny_nolabels(
 
 
     test_x, _ = load_data_nolabels(subject_files)
-    print("test_x ", test_x)
     for night_idx, night_data in enumerate(zip(test_x)):
                 # Create minibatches for testing
                 night_x = night_data

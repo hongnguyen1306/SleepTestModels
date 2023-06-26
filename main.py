@@ -110,22 +110,22 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
     if act_func == 'ReLU':
         if method == 'TS':
             print("======         TS TCC Sleep   RELU      ======")
-            load_from = "input/mode_TS"
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_40_ReLU.pt"), map_location=device)
+            load_from = "input/exp5TS/run_1/supervised_seed_123/saved_models"
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_17.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
             load_from =  'input/exp3CA/run_1/supervised_seed_123/saved_models/'
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_19.pt"), map_location=device)
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_30.pt"), map_location=device)
         
     if act_func == 'GELU':
         if method == 'TS':
             print("======         TS TCC Sleep GELU        ======")
-            load_from = "input/mode_TS"
-            checkpoint = torch.load(os.path.join(load_from, "model_epoch_25_GELU.pt"), map_location=device)
+            load_from = "input/TS_GELU_exp16/run_1/supervised_seed_123/saved_models"
+            checkpoint = torch.load(os.path.join(load_from, "model_epoch_26.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
             load_from =  'input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_22.pt"), map_location=device)
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_18.pt"), map_location=device)
     
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
@@ -241,7 +241,7 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
             config_file= str(os.path.join(base_path, "config_files/pytorch_configs/tiny_configs.py")),
             output_dir=str(os.path.join(base_path, model_path)),
             data_dir=str(os.path.join(base_path, data_path)),
-            use_best=False,
+            use_best=True,
             act_func = act_func
         )
     acc = round(acc * 100, 2)
