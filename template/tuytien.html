@@ -95,6 +95,13 @@
             object-fit: fill;
         }
 
+        .label-predict {
+            width: 100%;
+            text-align: left;
+            font-size: 20px;
+            padding-left: 294px;
+        }
+
     </style>
 </head>
 
@@ -143,6 +150,13 @@
         </div>
         {% endif %}
         {% endfor %}
+        <div id="label-predict" class="label-predict">
+            <p>DeepSleepNet: [2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 1 1 2 2]</p>
+            <p>TinySleepNet: [2 2 2 2 2 2 0 2 2 2 2 2 2 0 0 0 1 1 2 2]</p>
+            <p>AttnSleep:    [2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 1 2 2 2 2]</p>
+            <p>TS-TCC:       [3 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 2 1 2 2]</p>
+            <p>CA-TCC:       [3 2 2 2 2 2 2 2 2 2 2 2 2 0 3 4 2 2 2 2]</p>
+        </div>
 
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
@@ -152,7 +166,6 @@
             <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
             <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
         </form>
-        <div id="label-predict"></div>
         <div class="canvas-chart">
             <canvas id="myChart"></canvas>
         </div>
