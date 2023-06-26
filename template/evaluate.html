@@ -3,7 +3,8 @@
 
 <head>
     <title></title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
     <style>
         body {
             margin: 0;
@@ -185,6 +186,8 @@
 </html>
 
 <script>
+    var predicts = JSON.parse('{{ predicts_json|safe }}');
+    console.log(predicts);
     myChart = null
     function updateChart() {
         var selectedValues = [];
@@ -210,14 +213,17 @@
             if (xhttp.status >= 200 && xhttp.status < 300) {
                 // parse JSON
                 const response = JSON.parse(xhttp.responseText)
-                console.log(response)
+                console.log("response ", response)
                 drawChart(response)
             }
         }
-
+        var sendData = {
+            selectedValues: selectedValues,
+            predicts: predicts
+        };
         xhttp.open("POST", "/update-chart", true);
         xhttp.setRequestHeader("Content-type", "application/json");
-        xhttp.send(JSON.stringify(selectedValues));
+        xhttp.send(JSON.stringify(sendData));
     }
 
     function drawChart(data) {
@@ -335,17 +341,21 @@
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     var chartData = JSON.parse(this.responseText);
-                    // console.log("chardata", chartData.results)
+                    console.log("chardata", chartData)
                     drawChart(chartData);
                 }
             };
 
             // Tạo một chuỗi JSON từ các giá trị được chọn
             var requestData = JSON.stringify(selectedValues);
-
+            console.log("predicts document ", predicts)
+            var sendData = {
+                selectedValues: selectedValues,
+                predicts: predicts
+            };
             xhttp.open("POST", "/update-chart", true);
             xhttp.setRequestHeader("Content-type", "application/json");
-            xhttp.send(requestData);
+            xhttp.send(JSON.stringify(sendData));
 
         }
 

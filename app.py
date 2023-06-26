@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from werkzeug.utils import secure_filename
-import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import random
 import string
 import mne
@@ -87,7 +87,20 @@ def raw_chart(base_path, data_path):
     plt.close()
 
 
+def acc_chart(methods, accuracy, chart_filename):
+    x_values = list(range(len(methods)))
 
+    plt.figure(figsize=(10, 4))
+    plt.bar(x_values, accuracy, width=0.5)
+    plt.xticks(x_values, methods, horizontalalignment='center')
+    plt.xlabel('Methods')
+    plt.ylabel('Accuracy')
+    plt.title('Evaluation of Methods')
+    plt.ylim(0, 100)
+    plt.tight_layout()
+    plt.gca().set_yticklabels(['{:.0f}%'.format(x) for x in plt.gca().get_yticks()])  # Format y-axis tick labels as percentages
+    plt.savefig(os.path.join(base_path, "static", chart_filename)) 
+    plt.close()
 
 def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, name_chart):
     random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
@@ -114,8 +127,9 @@ def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, n
     plt.close()
 
 
-@app.route('/')
+@app.route('/', endpoint='home_endpoint')
 def home():
+    pass
     return render_template('index.html')
 
 # Define route
@@ -123,19 +137,19 @@ def home():
 def predict():
     # Load datasets
     
-    delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
-    delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
-    delete_files_async(os.path.join(base_path, "data"), '.npz')
-    delete_files_async(os.path.join(base_path, "data"), '.pt')
+    # delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
+    # delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
+    # delete_files_async(os.path.join(base_path, "data"), '.npz')
+    # delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
     uploaded_files = request.files.getlist('file')
     print("\n************* uploaded_files ", uploaded_files)
 
-    for file in uploaded_files:
-        filename = secure_filename(file.filename)
-        print("file ", filename)
-        file.save(os.path.join(base_path, data_path , filename))
+    # for file in uploaded_files:
+    #     filename = secure_filename(file.filename)
+    #     print("file ", filename)
+    #     file.save(os.path.join(base_path, data_path , filename))
 
     raw_chart(base_path=base_path,data_path=data_path)
 
@@ -152,11 +166,11 @@ def predict():
     acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
 
      # Tạo biểu đồ
-    preds_chart(outs_TS, '    TS-TCC')
-    preds_chart(outs_CA, '    CA-TCC')
-    preds_chart(outs_attn, '   AttnSleep')
-    preds_chart(outs_tiny, '   TinySleepNet')
-    preds_chart(outs_deepsleep, '   DeepSleepNet')
+    preds_chart(outs_TS, 'TS-TCC')
+    preds_chart(outs_CA, 'CA-TCC')
+    preds_chart(outs_attn, 'AttnSleep')
+    preds_chart(outs_tiny, 'TinySleepNet')
+    preds_chart(outs_deepsleep, 'DeepSleepNet')
 
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
@@ -165,10 +179,10 @@ def predict():
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
     # Load datasets
-    delete_files_async(os.path.join(base_path, "data"), '-PSG.edf')
-    delete_files_async(os.path.join(base_path, "data"), '-Hypnogram.edf')
-    delete_files_async(os.path.join(base_path, "data"), '.npz')
-    delete_files_async(os.path.join(base_path, "data"), '.pt')
+    # delete_files_async(os.path.join(base_path, "data"), '-PSG.edf')
+    # delete_files_async(os.path.join(base_path, "data"), '-Hypnogram.edf')
+    # delete_files_async(os.path.join(base_path, "data"), '.npz')
+    # delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
     uploaded_files = request.files.getlist('file')
@@ -179,10 +193,10 @@ def evaluate():
         file.save(os.path.join(base_path, data_path , filename))
 
     raw_chart(base_path=base_path,data_path=data_path)
-    EdfToFullNpz(base_path=base_path, data_dir=data_path)
+    # EdfToFullNpz(base_path=base_path, data_dir=data_path)
 
     test_npz = 'data/test_data.npz'
-    generate_withlabels(base_path, test_npz)
+    # generate_withlabels(base_path, test_npz)
     test_pt = data_generator(os.path.join(base_path, "data/test_data.pt"), labels=True)
 
     # print("\n*****    ReLU    ******")
@@ -238,42 +252,16 @@ def evaluate():
         return render_template('predictOneLabel.html', results=results, image_names=image_names)
     else:
         random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-        
-        methods = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
-        accuracy = [total_acc_TS, total_acc_CA, total_acc_Attn, acc_tiny_relu, total_acc_deepsleep]
-        acc_chart = 'result_' + random_number + '-acc_relu.png'
-        x_values = list(range(len(methods)))
 
-        plt.figure(figsize=(10, 4))
-        plt.bar(x_values, accuracy, align='center')
-        plt.xticks(x_values, methods, horizontalalignment='center')
-        plt.xlabel('Methods')
-        plt.ylabel('Accuracy')
-        plt.title('Evaluation of Methods')
-        plt.ylim(0, 100)
-        plt.tight_layout()
-        plt.gca().set_yticklabels(['{:.0f}%'.format(x) for x in plt.gca().get_yticks()])  # Format y-axis tick labels as percentages
-        plt.savefig(os.path.join(base_path, "static", acc_chart)) 
-        plt.close()
+        methods_acc_relu = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
+        accuracy_relu = [total_acc_TS, total_acc_CA, total_acc_Attn, acc_tiny_relu, total_acc_deepsleep]
+        acc_chart_relu = 'result_' + random_number + '-acc_relu.png'
+        acc_chart(methods_acc_relu, accuracy_relu, acc_chart_relu)
 
-        # /////// ACC GELU
-        methods = ['TS-TCC', 'CA-TCC', 'Tinysleepnet']
-        accuracy = [gelu_acc_TS, gelu_acc_CA, acc_tiny_gelu]
-        acc_chart = 'result_' + random_number + '-acc_gelu.png'
-        x_values = list(range(len(methods)))
-
-        plt.figure(figsize=(10, 4))
-        plt.bar(x_values, accuracy, width=0.1)
-        plt.bar(x_values, accuracy, align='center')
-        plt.xticks(x_values, methods, horizontalalignment='center')
-        plt.xlabel('Methods')
-        plt.ylabel('Accuracy')
-        plt.title('Evaluation of Methods')
-        plt.ylim(0, 100)
-        plt.tight_layout()
-        plt.gca().set_yticklabels(['{:.0f}%'.format(x) for x in plt.gca().get_yticks()])  # Format y-axis tick labels as percentages
-        plt.savefig(os.path.join(base_path, "static", acc_chart)) 
-        plt.close()
+        methods_acc_gelu = ['TS-TCC', 'CA-TCC', 'Tinysleepnet']
+        accuracy_gelu = [gelu_acc_TS, gelu_acc_CA, acc_tiny_gelu]
+        acc_chart_gelu = 'result_' + random_number + '-acc_gelu.png'
+        acc_chart(methods_acc_gelu, accuracy_gelu, acc_chart_gelu)
 
         # True Labels Chart
         true_labels_chart = 'result_' + random_number + '-true_line.png'
@@ -296,109 +284,131 @@ def evaluate():
         plt.close()
         preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny_ReLU, outs_deepsleep, 'sum-result')
 
-    # Route cho trang HTML
-    @app.route('/evaluate')
-    def index():
-        return render_template('evaluate.html')
+        predicts = {
+            'TS-TCC_gelu': outs_TS_G.tolist(),
+            'TS-TCC': outs_TS.tolist(),
+            'CA-TCC': outs_CA.tolist(),
+            'CA-TCC_gelu': outs_CA_G.tolist(),
+            'outs_attn': outs_attn.tolist(),
+            'outs_tiny_ReLU': outs_tiny_ReLU.tolist(),
+            'outs_tiny_GELU': outs_tiny_GELU.tolist(),
+            'outs_deepsleep': outs_deepsleep.tolist()
+        }
 
-    # Route để cung cấp dữ liệu biểu đồ ban đầu
-    @app.route('/initial-chart-data', methods=['GET'])
-    def get_initial_chart_data():
-        return jsonify(initial_chart_data)
-
-    @app.route('/update-chart', methods=['POST'])
-    def update_chart():
-        selected_values = request.get_json()
-        print("hhh", selected_values)
-        labels = ['W', 'N1', 'N2', 'N3', 'REM']
-
-        # plt.figure(figsize=(25, 5))
-        initial_chart_data = {}
-
-        # Update the initial_chart_data based on selected checkboxes
-        for value in selected_values:
-            if value == "1":
-                temp = outs_attn.tolist()
-                for index in range(0,len(temp)):
-                    if temp[index]==0:
-                        temp[index]='W'
-                    elif temp[index]==1:
-                        temp[index]='N1'
-                    elif temp[index]==2:
-                        temp[index]='N2'
-                    elif temp[index]==3:
-                        temp[index]='N3'
-                    elif temp[index]==4:
-                        temp[index]='REM'
-
-                initial_chart_data["AttnSleep"] = temp
-            elif value == "2":
-                temp = outs_CA.tolist()
-                for index in range(0,len(temp)):
-                    if temp[index]==0:
-                        temp[index]='W'
-                    elif temp[index]==1:
-                        temp[index]='N1'
-                    elif temp[index]==2:
-                        temp[index]='N2'
-                    elif temp[index]==3:
-                        temp[index]='N3'
-                    elif temp[index]==4:
-                        temp[index]='REM'
-
-                initial_chart_data["CA-TCC"] = temp
-            elif value == "3":
-                temp = outs_deepsleep.tolist()
-                for index in range(0,len(temp)):
-                    if temp[index]==0:
-                        temp[index]='W'
-                    elif temp[index]==1:
-                        temp[index]='N1'
-                    elif temp[index]==2:
-                        temp[index]='N2'
-                    elif temp[index]==3:
-                        temp[index]='N3'
-                    elif temp[index]==4:
-                        temp[index]='REM'
-                initial_chart_data["DeepSleepNet"] = temp
-            elif value == "4":
-                temp = outs_TS.tolist()
-                for index in range(0,len(temp)):
-                    if temp[index]==0:
-                        temp[index]='W'
-                    elif temp[index]==1:
-                        temp[index]='N1'
-                    elif temp[index]==2:
-                        temp[index]='N2'
-                    elif temp[index]==3:
-                        temp[index]='N3'
-                    elif temp[index]==4:
-                        temp[index]='REM'
-                initial_chart_data["TS-TCC"] = temp
-            elif value == "5":
-                temp = outs_tiny_ReLU.tolist()
-                for index in range(0,len(temp)):
-                    if temp[index]==0:
-                        temp[index]='W'
-                    elif temp[index]==1:
-                        temp[index]='N1'
-                    elif temp[index]==2:
-                        temp[index]='N2'
-                    elif temp[index]==3:
-                        temp[index]='N3'
-                    elif temp[index]==4:
-                        temp[index]='REM'
-                initial_chart_data["TinySleepNet"] = temp
-
-        print("huhu", initial_chart_data)
-
-        print(jsonify({'labels': labels, 'data': initial_chart_data}))
-        return jsonify({'labels': labels, 'data': initial_chart_data})
-
-        ###==================================================================================
+            ###==================================================================================
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
-    return render_template('evaluate.html', image_names=image_names)
+    return render_template('evaluate.html', image_names=image_names,  predicts_json=json.dumps(predicts))
+    # # Route cho trang HTML
+    # @app.route('/evaluate2')
+    # def index():
+    #     return render_template('evaluate.html')
+
+    # # Route để cung cấp dữ liệu biểu đồ ban đầu
+    # @app.route('/initial-chart-data', methods=['GET'])
+    # def get_initial_chart_data():
+    #     return jsonify(initial_chart_data)
+
+@app.route('/update-chart', methods=['POST'])
+def update_chart():
+    getData = request.get_json()
+    predicts = getData['predicts']
+    selected_values = getData['selectedValues']
+
+    outs_TS_G = predicts['TS-TCC_gelu']
+    outs_TS = predicts['TS-TCC']
+    outs_CA = predicts['CA-TCC']
+    outs_CA_G = predicts['CA-TCC_gelu']
+    outs_attn = predicts['outs_attn']
+    outs_tiny_ReLU = predicts['outs_tiny_ReLU']
+    outs_tiny_GELU = predicts['outs_tiny_GELU']
+    outs_deepsleep = predicts['outs_deepsleep']
+
+    labels = ['W', 'N1', 'N2', 'N3', 'REM']
+
+    # plt.figure(figsize=(25, 5))
+    initial_chart_data = {}
+
+    # Update the initial_chart_data based on selected checkboxes
+    for value in selected_values:
+        if value == "1":
+            temp = outs_attn
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+
+            initial_chart_data["AttnSleep"] = temp
+        elif value == "2":
+            temp = outs_CA
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+
+            initial_chart_data["CA-TCC"] = temp
+        elif value == "3":
+            temp = outs_deepsleep
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["DeepSleepNet"] = temp
+        elif value == "4":
+            temp = outs_TS
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["TS-TCC"] = temp
+        elif value == "5":
+            temp = outs_tiny_ReLU
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["TinySleepNet"] = temp
+
+    print("huhu", initial_chart_data)
+
+    print("json result ",jsonify({'labels': labels, 'data': initial_chart_data}))
+    return jsonify({'labels': labels, 'data': initial_chart_data})
+
 
 if __name__ == '__main__':
     app.run(port=8080)
