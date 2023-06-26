@@ -23,7 +23,7 @@
     }
 
     .home {
-      width: 760px;
+      width: 750px;
       height: 320px;
       border-radius: 50px;
       padding: 0px 100px 20px;
@@ -112,14 +112,15 @@
 <body>
   <h1>CÔNG CỤ PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ</h1>
   <div class="home">
-    <form action="/evaluate" method="POST" enctype="multipart/form-data">
-      <!-- <br>
-      <label for="epoch_file">Chọn tệp epoch:</label>
-      <select name="epoch_file" id="epoch_file">
-        <option value="1">1 epoch</option>
-        <option value="10">10 epochs</option>
-        <option value="20">20 epochs</option>
-      </select> -->
+    <div id="label-selection" style="width: 200px;">
+      <input type="radio" id="with-labels" name="label-option" value="with-labels" checked>
+      <label for="with-labels">Phân tích</label>
+      <br>
+      <input type="radio" id="without-labels" name="label-option" value="without-labels">
+      <label for="without-labels">Dự đoán</label>
+    </div>
+
+    <form id="with-labels-form" action="/evaluate" method="POST" enctype="multipart/form-data">
       <br>
       <label for="edf_file1">Chọn tệp edf:</label>
       <input class="input_edf" type="file" id="edf_file1" name="file">
@@ -127,9 +128,32 @@
       <label for="edf_file2">Chọn tệp hypnogram:</label>
       <input class="input_hyn" type="file" id="edf_file2" name="file">
       <input type="submit" value="Tải lên">
-      <!-- <img src="./template/upload.png" alt="" /> -->
+    </form>
+
+    <form id="without-labels-form" action="/predict" method="POST" enctype="multipart/form-data" style="display: none;">
+      <br>
+      <label for="edf_file1">Chọn tệp edf:</label>
+      <input class="input_edf" type="file" id="edf_file1" name="file">
+      <br>
+      <input type="submit" value="Tải lên">
     </form>
   </div>
 </body>
 
 </html>
+<script>
+  const withLabelsRadio = document.getElementById('with-labels');
+  const withoutLabelsRadio = document.getElementById('without-labels');
+  const withLabelsForm = document.getElementById('with-labels-form');
+  const withoutLabelsForm = document.getElementById('without-labels-form');
+
+  withLabelsRadio.addEventListener('change', () => {
+    withLabelsForm.style.display = 'block';
+    withoutLabelsForm.style.display = 'none';
+  });
+
+  withoutLabelsRadio.addEventListener('change', () => {
+    withLabelsForm.style.display = 'none';
+    withoutLabelsForm.style.display = 'block';
+  });
+</script>

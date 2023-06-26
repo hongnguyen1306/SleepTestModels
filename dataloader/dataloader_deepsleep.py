@@ -124,8 +124,11 @@ class SeqDataLoader(object):
     def load_subject_nolabels(data_dir, subject_idx):
         # Remove non-mat files, and perform ascending sort
         subject_files = []
-        subject_files = glob.glob(data_dir + "/*.npz")
+        # subject_files = glob.glob(data_dir + ".npz")
+        subject_files = [data_dir]
+
         # subject_files.append(npz_file)
+        print("subject_files Deepsleep  ", subject_files)
         
         if len(subject_files) == 0 or len(subject_files) > 2:
             raise Exception("Invalid file pattern")

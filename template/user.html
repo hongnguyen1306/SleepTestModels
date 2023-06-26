@@ -4,39 +4,145 @@
 <head>
     <title>User</title>
     <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .data-raw {
+            width: 94%;
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .img-data-raw {
+            width: 94%;
+            object-fit: contain;
+            margin-bottom: 30px;
+            margin-top: 6px;
+        }
+
+        .activation {
+            width: 94%;
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .image-activation {
+            width: 78%;
+            object-fit: contain;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .data-and-activation {
+            width: 96%;
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+        }
+
+        input [type="checkbox"] {
+            padding: 8px 10px;
+            margin: 8px 0px;
+            box-sizing: border-box;
+            font-size: 18px;
+        }
+
+        label {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            font-size: 24px;
+            color: black;
+            margin: 0;
+            padding: 0;
+            line-height: 50px;
+            margin-right: 20px;
+        }
+
+        .model {
+            width: 94%;
+            text-align: center;
+            margin-top: 50px;
+            background-color: white;
+            border-radius: 10px;
+            padding-top: 30px;
+        }
+
+        .image-model {
+            width: 98%;
+            object-fit: contain;
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .canvas-chart {
+            text-align: center;
+            width: 100%;
+            height: 50vh;
+            object-fit: fill;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Kết quả nhận biết các giai đoạn giấc ngủ</h1>
-    {% for file in image_names %}
-    {% if file.endswith('TS-TCC.png') %}
-    <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-    {% endif %}
-    <br>
-    {% if file.endswith('CA-TCC.png') %}
-    <div>
-        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    <!-- <div class="data-and-activation"> -->
+    <div class="data-raw">
+        <h2> Hình ảnh dữ liệu edf thô </h2>
+        {% for file in image_names %}
+        {% if file.endswith('Fpz_Cz.png') %}
+        <div class="img-chart">
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
-    {% endif %}
-    <br>
-    {% if file.endswith('Attn.png') %}
-    <div>
-        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    <div class="model">
+        <h2>Hình ảnh phân lớp các giai đoạn giấc ngủ</h2>
+        {% for file in image_names %}
+        {% if file.endswith('TS-TCC.png') %}
+        <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        {% endif %}
+        <br>
+        {% if file.endswith('CA-TCC.png') %}
+        <div>
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('AttnSleep.png') %}
+        <div>
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('TinySleepNet.png') %}
+        <div>
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        <br>
+        {% if file.endswith('DeepSleepNet.png') %}
+        <div>
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
-    {% endif %}
-    <br>
-    {% if file.endswith('TinySleepNet.png') %}
-    <div>
-        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-    </div>
-    {% endif %}
-    <br>
-    {% if file.endswith('DeepSleepNet.png') %}
-    <div>
-        <img src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-    </div>
-    {% endif %}
-    {% endfor %}
 </body>
 
 </html>

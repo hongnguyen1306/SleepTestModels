@@ -47,17 +47,16 @@ def delete_files_async(folder_path, extension):
 def preds_chart(preds, name_chart):
     random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     filename = 'preds' + random_number + '-'+ name_chart +'.png'
-
-    fig = plt.figure(figsize=(10, 2))
+    fig = plt.figure(figsize=(10, 3))
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(preds, color='green')
     ax.set_title(name_chart)
-    # ax.set_xlabel('Epochs')
-    ax.set_xticklabels('Epochs', fontsize=10)
-    ax.set_ylabel('Sleep stage')
-    ax.set_yticks(range(2))
-    ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'], fontsize=10)
-    plt.savefig(os.path.join('static', filename)) 
+    ax.set_ylabel('Sleep Stage')
+    ax.set_xlabel('Epoch')
+    ax.set_yticks(range(5))
+    ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
+
+    plt.savefig(os.path.join(base_path, "static", filename))
     plt.close()
 
 def raw_chart(base_path, data_path):
@@ -124,21 +123,24 @@ def home():
 def predict():
     # Load datasets
     
-    # delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
-    # delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
-    # delete_files_async(os.path.join(base_path, "data"), '.npz')
-    # delete_files_async(os.path.join(base_path, "data"), '.pt')
+    delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
+    delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
+    delete_files_async(os.path.join(base_path, "data"), '.npz')
+    delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
     uploaded_files = request.files.getlist('file')
     print("\n************* uploaded_files ", uploaded_files)
+
     for file in uploaded_files:
         filename = secure_filename(file.filename)
         print("file ", filename)
         file.save(os.path.join(base_path, data_path , filename))
 
+    raw_chart(base_path=base_path,data_path=data_path)
 
-    EdfToNpz_NoLabels(base_path, data_path)
+    # EdfToNpz_NoLabels(base_path, data_path)
+    test_npz = "data/test_data.npz"
     generate_nolabels(base_path, "data/test_data.npz")
     test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=False)
 
@@ -146,8 +148,8 @@ def predict():
     total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU', labels=False)
     
     acc_Attn, outs_attn, trgs = load_model_Attn(test_dl, base_path, labels=False)
-    acc, f1_score, outs_tiny = load_model_Tiny(test_dl, base_path, act_func = 'GELU', labels=False)
-    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(base_path, labels=False)
+    acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=False)
+    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
 
      # Tạo biểu đồ
     preds_chart(outs_TS, '    TS-TCC')
@@ -193,7 +195,7 @@ def evaluate():
     
     total_acc_Attn, outs_attn , trgs = load_model_Attn(test_pt, base_path, labels=True)
     acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=True)
-    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'RELU', labels=True)
+    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
     total_acc_deepsleep, total_f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
     
     data = np.load(os.path.join(base_path, "data/test_data.npz"))
