@@ -137,36 +137,37 @@ def home():
 def predict():
     # Load datasets
     
-    # delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
-    # delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
-    # delete_files_async(os.path.join(base_path, "data"), '.npz')
-    # delete_files_async(os.path.join(base_path, "data"), '.pt')
+    delete_files_async(os.path.join(base_path, "data"), 'PSG.edf')
+    delete_files_async(os.path.join(base_path, "data"), 'Hypnogram.edf')
+    delete_files_async(os.path.join(base_path, "data"), '.npz')
+    delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
-    # uploaded_files = request.files.getlist('file')
-    # print("\n************* uploaded_files ", uploaded_files)
+    uploaded_files = request.files.getlist('file')
+    print("\n************* uploaded_files ", uploaded_files)
 
-    # for file in uploaded_files:
-    #     filename = secure_filename(file.filename)
-    #     print("file ", filename)
-    #     file.save(os.path.join(base_path, data_path , filename))
+    for file in uploaded_files:
+        filename = secure_filename(file.filename)
+        print("file ", filename)
+        file.save(os.path.join(base_path, data_path , filename))
 
     raw_chart(base_path=base_path,data_path=data_path)
 
-    # EdfToNpz_NoLabels(base_path, data_path)
+    EdfToNpz_NoLabels(base_path, data_path)
     test_npz = "data/test_data.npz"
-    # generate_nolabels(base_path, "data/test_data.npz")
+    generate_nolabels(base_path, "data/test_data.npz")
     test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=False)
 
     total_loss, total_acc_TS, outs_TS, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU', labels=False)
     total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU', labels=False)
     
     acc_Attn, outs_attn, trgs = load_model_Attn(test_dl, base_path, labels=False)
-    acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=False)
+    acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=False)
     acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
 
     preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, 'sum-result')
     predicts = {
+            'true_labels': [],
             'TS-TCC_gelu': [],
             'TS-TCC': outs_TS.tolist(),
             'CA-TCC': outs_CA.tolist(),

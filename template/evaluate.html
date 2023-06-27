@@ -107,7 +107,6 @@
             width: 100%;
             height: 150px;
         }
-
     </style>
 </head>
 
@@ -149,21 +148,21 @@
     </div>
 
     <div class="model">
-        <!-- {% for file in image_names %}
+        {% for file in image_names %}
         {% if file.endswith('true_line.png') %}
         <div class="img-chart">
             <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
-        {% endfor %} -->
+        {% endfor %}
 
-        {% for file in image_names %}
+        <!-- {% for file in image_names %}
         {% if file.endswith('true_labels_legend.png') %}
         <div class="img-chart">
             <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
-        {% endfor %}
+        {% endfor %} -->
         <!-- <div id="label-predict" class="label-predict">
             <p name="label-model" id="deep" hidden="true">DeepSleepNet:</p>
             <p name="label-model" id="tiny" hidden="true">TinySleepNet: </p>
@@ -183,7 +182,8 @@
             <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
             <input type="checkbox" name="model" id="modelTS_GE" value=6 onchange="updateChart()">TS-TCC GELU</input>
             <input type="checkbox" name="model" id="modelCA_GE" value=7 onchange="updateChart()">CA-TCC GELU</input>
-            <input type="checkbox" name="model" id="modelTiny_GE" value=8 onchange="updateChart()">TinySleepNet GELU</input>
+            <input type="checkbox" name="model" id="modelTiny_GE" value=8 onchange="updateChart()">TinySleepNet
+            GELU</input>
         </form>
         <div class="canvas-chart">
             <canvas id="myChart"></canvas>
@@ -259,6 +259,19 @@
             myChart.destroy();
         }
 
+        const labelColors = {
+            'TS-TCC': 'blue',
+            'CA-TCC': 'green',
+            'AttnSleep': 'orange',
+            'DeepSleepNet': 'aqua',
+            'TinySleepNet': 'yellow',
+            'true_labels': 'navy',
+            'TS-TCC GELU': 'lime',
+            'CA-TCC GELU': 'maroon',
+            'TinySleepNet GELU': 'copper',
+            'Nhãn đúng': 'red'
+        };
+
         const datasets = Object.entries(data.data).map(([label, values]) => {
             const dataCounts = values.map((value, index) => {
                 switch (value) {
@@ -282,8 +295,7 @@
             return {
                 label: label,
                 data: dataCounts,
-                borderColor: color,
-                // borderColor: ["red","blue", "slim", "chocolate", "gold", "orange", "aqua", "fuchsia", "gray" ],
+                borderColor: labelColors[label],
                 fill: false
             };
         });
