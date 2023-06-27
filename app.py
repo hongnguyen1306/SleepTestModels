@@ -29,7 +29,7 @@ initial_chart_data = {
         # "TinySleepNet": 0
     }
 
-base_path = "/home/rosa/TestModels"
+base_path = ""
 data_path = "data"
 app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
 # socketio = SocketIO(app)
@@ -290,6 +290,7 @@ def evaluate():
         preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny_ReLU, outs_deepsleep, 'sum-result')
 
         predicts = {
+            'true_labels': true_labels.tolist(),
             'TS-TCC_gelu': outs_TS_G.tolist(),
             'TS-TCC': outs_TS.tolist(),
             'CA-TCC': outs_CA.tolist(),
@@ -320,6 +321,7 @@ def update_chart():
     predicts = getData['predicts']
     selected_values = getData['selectedValues']
 
+    true_label = predicts['true_labels']
     outs_TS_G = predicts['TS-TCC_gelu']
     outs_TS = predicts['TS-TCC']
     outs_CA = predicts['CA-TCC']
@@ -336,7 +338,21 @@ def update_chart():
 
     # Update the initial_chart_data based on selected checkboxes
     for value in selected_values:
-        if value == "1":
+        if value == "0":
+            temp = true_label
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["Nhãn đúng"] = temp
+        elif value == "1":
             temp = outs_attn
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -408,6 +424,48 @@ def update_chart():
                 elif temp[index]==4:
                     temp[index]='REM'
             initial_chart_data["TinySleepNet"] = temp
+        elif value == "6":
+            temp = outs_TS_G
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["TS-TCC GELU"] = temp
+        elif value == "7":
+            temp = outs_CA_G
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["CA-TCC GELU"] = temp
+        elif value == "8":
+            temp = outs_tiny_GELU
+            for index in range(0,len(temp)):
+                if temp[index]==0:
+                    temp[index]='W'
+                elif temp[index]==1:
+                    temp[index]='N1'
+                elif temp[index]==2:
+                    temp[index]='N2'
+                elif temp[index]==3:
+                    temp[index]='N3'
+                elif temp[index]==4:
+                    temp[index]='REM'
+            initial_chart_data["TinySleepNet GELU"] = temp
 
     return jsonify({'labels': labels, 'data': initial_chart_data})
 

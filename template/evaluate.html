@@ -45,7 +45,7 @@
             width: 78%;
             object-fit: contain;
             margin-top: 20px;
-            margin-bottom: 30px;
+            /* margin-bottom: 30px; */
         }
 
         .data-and-activation {
@@ -95,6 +95,19 @@
             height: 50vh;
             object-fit: fill;
         }
+
+        .label-predict {
+            width: 100%;
+            text-align: left;
+            font-size: 20px;
+            padding-left: 294px;
+        }
+
+        .footer {
+            width: 100%;
+            height: 150px;
+        }
+
     </style>
 </head>
 
@@ -136,13 +149,13 @@
     </div>
 
     <div class="model">
-        {% for file in image_names %}
+        <!-- {% for file in image_names %}
         {% if file.endswith('true_line.png') %}
         <div class="img-chart">
             <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
-        {% endfor %}
+        {% endfor %} -->
 
         {% for file in image_names %}
         {% if file.endswith('true_labels_legend.png') %}
@@ -151,19 +164,32 @@
         </div>
         {% endif %}
         {% endfor %}
+        <!-- <div id="label-predict" class="label-predict">
+            <p name="label-model" id="deep" hidden="true">DeepSleepNet:</p>
+            <p name="label-model" id="tiny" hidden="true">TinySleepNet: </p>
+            <p name="label-model" id="attn" hidden="true">AttnSleep: </p>
+            <p name="label-model" id="ts" hidden="true">TS-TCC: </p>
+            <p name="label-model" id="ca" hidden="true">CA-TCC: </p>
+        </div> -->
 
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
+            <input type="checkbox" name="model" id="modelTrue" value=0 onchange="updateChart()">Nhãn đúng</input>
             <input type="checkbox" name="model" id="modelAttn" value=1 onchange="updateChart()">AttnSleep</input>
             <input type="checkbox" name="model" id="modelCa-tcc" value=2 onchange="updateChart()">CA-TCC</input>
             <input type="checkbox" name="model" id="modelDeepSleep" value=3
                 onchange="updateChart()">DeepSleepNet</input>
             <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
             <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
+            <input type="checkbox" name="model" id="modelTS_GE" value=6 onchange="updateChart()">TS-TCC GELU</input>
+            <input type="checkbox" name="model" id="modelCA_GE" value=7 onchange="updateChart()">CA-TCC GELU</input>
+            <input type="checkbox" name="model" id="modelTiny_GE" value=8 onchange="updateChart()">TinySleepNet GELU</input>
         </form>
-        <div id="label-predict"></div>
         <div class="canvas-chart">
             <canvas id="myChart"></canvas>
+        </div>
+        <div class="footer">
+
         </div>
 
     </div>
@@ -172,14 +198,19 @@
 </html>
 
 <script>
+
     var predicts = JSON.parse('{{ predicts_json|safe }}');
     console.log(predicts);
     myChart = null
+
     function updateChart() {
         var selectedValues = [];
+        var sendData = {
+            selectedValues: selectedValues,
+            predicts: predicts
+        };
         var checkboxes = document.getElementsByName("model");
         var alertMessage = "";
-
         // Lặp qua các checkbox và lấy giá trị của các checkbox đã được chọn
         for (var i = 0; i < checkboxes.length; i++) {
             if (checkboxes[i].checked) {
@@ -188,6 +219,7 @@
                 alertMessage += value + "\n";
             }
         }
+
 
         // Hiển thị giá trị các checkbox đã chọn trong một thông báo cảnh báo
         console.log("Selected values:\n" + alertMessage);
@@ -203,10 +235,9 @@
                 drawChart(response)
             }
         }
-        var sendData = {
-            selectedValues: selectedValues,
-            predicts: predicts
-        };
+
+        console.log("senData", sendData)
+        console.log("senDa predict", sendData.predicts[outs_deepsleep])
         xhttp.open("POST", "/update-chart", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send(JSON.stringify(sendData));
@@ -214,28 +245,16 @@
 
     function drawChart(data) {
         var ctx = document.getElementById('myChart').getContext('2d');
-        ctx.canvas.width = 1200;
-        ctx.canvas.height = 300;
+        ctx.canvas.width = 1500;
+        ctx.canvas.height = 400;
+        // ctx.defaults.font.size = 16;
+        // ctx.defaults.font.lineHeight = 1.5;
         if (!data || Object.keys(data).length === 0) {
             console.error('Invalid data');
             return;
         }
 
         console.log("datahaha", data)
-        // const labelPredict = document.getElementById('label-predict');
-        // data.forEach(item => {
-        // // Tạo phần tử label
-        // const labelElement = document.createElement('p');
-        // labelElement.textContent = item.label;
-        // labelPredict.appendChild(labelElement);
-
-        // // Tạo phần tử data
-        // const dataElement = document.createElement('p');
-        // dataElement.textContent = item.values.join(', ');
-        // labelPredict.appendChild(dataElement);
-        // });
-
-        // Hủy biểu đồ hiện tại nếu đã tồn tại
         if (myChart) {
             myChart.destroy();
         }
@@ -256,12 +275,15 @@
                     default:
                         return 5;
                 }
+
             });
+
 
             return {
                 label: label,
                 data: dataCounts,
-                borderColor: ["blue", "green", "chocolate", "gold", "orange"],
+                borderColor: color,
+                // borderColor: ["red","blue", "slim", "chocolate", "gold", "orange", "aqua", "fuchsia", "gray" ],
                 fill: false
             };
         });
@@ -285,9 +307,8 @@
                     x: {
                         beginAtZero: true,
                         ticks: {
-                            fontSize: 12, // Kích thước chữ cho trục Ox
+                            fontSize: 16, // Kích thước chữ cho trục Ox
                         },
-                        // outerWidth: 400
                     },
                     y: {
                         min: 0,  // Giá trị tối thiểu của trục Oy
@@ -310,8 +331,7 @@
                                         return '';
                                 }
                             },
-                            fontSize: 12,
-                            outerHeight: 30,
+                            fontSize: 16,
                         }
                     }
                 }
