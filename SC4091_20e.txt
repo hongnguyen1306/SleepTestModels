@@ -1,7 +1,0 @@
-+0.0000000,30,Sleep stage 3
-+30.0000000,270,Sleep stage 2
-+300.0000000,30,Movement time
-+330.0000000,90,Sleep stage 2
-+420.0000000,90,Sleep stage W
-+510.0000000,60,Sleep stage 1
-+570.0000000,60,Sleep stage 2

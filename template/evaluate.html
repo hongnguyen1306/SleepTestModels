@@ -244,17 +244,17 @@
             const dataCounts = values.map((value, index) => {
                 switch (value) {
                     case 'W':
-                        return 1;
-                    case 'N1':
-                        return 2;
-                    case 'N2':
-                        return 3;
-                    case 'N3':
-                        return 4;
-                    case 'REM':
-                        return 5;
-                    default:
                         return 0;
+                    case 'N1':
+                        return 1;
+                    case 'N2':
+                        return 2;
+                    case 'N3':
+                        return 3;
+                    case 'REM':
+                        return 4;
+                    default:
+                        return 5;
                 }
             });
 
@@ -290,21 +290,21 @@
                         // outerWidth: 400
                     },
                     y: {
-                        min: 1,  // Giá trị tối thiểu của trục Oy
-                        max: 5,  // Giá trị tối đa của trục Oy
+                        min: 0,  // Giá trị tối thiểu của trục Oy
+                        max: 4,  // Giá trị tối đa của trục Oy
                         ticks: {
                             stepSize: 1,
                             callback: function (value, index, values) {
                                 switch (value) {
-                                    case 1:
+                                    case 0:
                                         return 'W';
-                                    case 2:
+                                    case 1:
                                         return 'N1';
-                                    case 3:
+                                    case 2:
                                         return 'N2';
-                                    case 4:
+                                    case 3:
                                         return 'N3';
-                                    case 5:
+                                    case 4:
                                         return 'REM';
                                     default:
                                         return '';

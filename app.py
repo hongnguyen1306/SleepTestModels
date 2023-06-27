@@ -91,7 +91,7 @@ def acc_chart(methods, accuracy, chart_filename):
     x_values = list(range(len(methods)))
 
     plt.figure(figsize=(10, 4))
-    plt.bar(x_values, accuracy, width=0.5)
+    plt.bar(x_values, accuracy, align='center')
     plt.xticks(x_values, methods, horizontalalignment='center')
     plt.xlabel('Methods')
     plt.ylabel('Accuracy')
@@ -143,8 +143,8 @@ def predict():
     # delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
-    uploaded_files = request.files.getlist('file')
-    print("\n************* uploaded_files ", uploaded_files)
+    # uploaded_files = request.files.getlist('file')
+    # print("\n************* uploaded_files ", uploaded_files)
 
     # for file in uploaded_files:
     #     filename = secure_filename(file.filename)
@@ -155,7 +155,7 @@ def predict():
 
     # EdfToNpz_NoLabels(base_path, data_path)
     test_npz = "data/test_data.npz"
-    generate_nolabels(base_path, "data/test_data.npz")
+    # generate_nolabels(base_path, "data/test_data.npz")
     test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=False)
 
     total_loss, total_acc_TS, outs_TS, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU', labels=False)
@@ -165,24 +165,29 @@ def predict():
     acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=False)
     acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
 
-     # Tạo biểu đồ
-    preds_chart(outs_TS, 'TS-TCC')
-    preds_chart(outs_CA, 'CA-TCC')
-    preds_chart(outs_attn, 'AttnSleep')
-    preds_chart(outs_tiny, 'TinySleepNet')
-    preds_chart(outs_deepsleep, 'DeepSleepNet')
+    preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, 'sum-result')
+    predicts = {
+            'TS-TCC_gelu': [],
+            'TS-TCC': outs_TS.tolist(),
+            'CA-TCC': outs_CA.tolist(),
+            'CA-TCC_gelu': [],
+            'outs_attn': outs_attn.tolist(),
+            'outs_tiny_ReLU': outs_tiny.tolist(),
+            'outs_tiny_GELU': [],
+            'outs_deepsleep': outs_deepsleep.tolist()
+        }
 
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
-    return render_template('user.html', image_names=image_names)
+    return render_template('user.html', image_names=image_names, predicts_json=json.dumps(predicts))
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
     # Load datasets
-    # delete_files_async(os.path.join(base_path, "data"), '-PSG.edf')
-    # delete_files_async(os.path.join(base_path, "data"), '-Hypnogram.edf')
-    # delete_files_async(os.path.join(base_path, "data"), '.npz')
-    # delete_files_async(os.path.join(base_path, "data"), '.pt')
+    delete_files_async(os.path.join(base_path, "data"), '-PSG.edf')
+    delete_files_async(os.path.join(base_path, "data"), '-Hypnogram.edf')
+    delete_files_async(os.path.join(base_path, "data"), '.npz')
+    delete_files_async(os.path.join(base_path, "data"), '.pt')
     delete_files_async(os.path.join(base_path, "static"), '.png')
 
     uploaded_files = request.files.getlist('file')
@@ -193,10 +198,10 @@ def evaluate():
         file.save(os.path.join(base_path, data_path , filename))
 
     raw_chart(base_path=base_path,data_path=data_path)
-    # EdfToFullNpz(base_path=base_path, data_dir=data_path)
+    EdfToFullNpz(base_path=base_path, data_dir=data_path)
 
     test_npz = 'data/test_data.npz'
-    # generate_withlabels(base_path, test_npz)
+    generate_withlabels(base_path, test_npz)
     test_pt = data_generator(os.path.join(base_path, "data/test_data.pt"), labels=True)
 
     # print("\n*****    ReLU    ******")
@@ -404,9 +409,6 @@ def update_chart():
                     temp[index]='REM'
             initial_chart_data["TinySleepNet"] = temp
 
-    print("huhu", initial_chart_data)
-
-    print("json result ",jsonify({'labels': labels, 'data': initial_chart_data}))
     return jsonify({'labels': labels, 'data': initial_chart_data})
 
 

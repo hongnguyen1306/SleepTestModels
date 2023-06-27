@@ -105,8 +105,6 @@ def EdfToFullNpz(base_path, data_dir):
         ann_start_dt = datetime.strptime(
             h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
         
-        print("raw_start_dt ", raw_start_dt, "  ann_start_dt ", ann_start_dt)
-
         # Assert that raw and annotation files start at the same time
         assert raw_start_dt == ann_start_dt
 
@@ -114,7 +112,6 @@ def EdfToFullNpz(base_path, data_dir):
         remove_idx = []    # indicies of the data that will be removed
         labels = []        # indicies of the data that have labels
         label_idx = []
-        print("///// ann[0] ", ann[0])
         if len(ann[0]) > 1:
             for a in ann[0]:
                 onset_sec, duration_sec, ann_char = a
@@ -230,7 +227,6 @@ def EdfToFullNpz(base_path, data_dir):
         select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
-        print("***** edfnpz x  ", x )
         y = y[select_idx]
         print(("Data after selection: {}, {}".format(x.shape, y.shape)))
 

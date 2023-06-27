@@ -288,64 +288,64 @@ def main():
     # test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")))
 
 
-    # val_folder = "/home/rosa/val"
-    # for test_npz_file in os.listdir(val_folder):
-    #     if test_npz_file.endswith('.npz'):
-    #         test_npz_path = os.path.join(val_folder, test_npz_file)
-    #         generate_withlabels(base_path, test_npz_path)
-    #         test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
+    val_folder = "/home/rosa/TestModels/Tel_test_npz"
+    for test_npz_file in os.listdir(val_folder):
+        if test_npz_file.endswith('.npz'):
+            test_npz_path = os.path.join(val_folder, test_npz_file)
+            generate_withlabels(base_path, test_npz_path)
+            test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
 
-    #         # print("\n*****    ReLU    ******")
-    #         loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
-    #         loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+            # print("\n*****    ReLU    ******")
+            loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+            loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
 
-    #         # print("\n*****    GELU    ******")
-    #         loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
-    #         loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
-
-
-    #         # acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
-    #         acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz_path, base_path, act_func = 'ReLU', labels=True)
-    #         acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz_path, base_path, act_func = 'GELU', labels=True)
-    #         # acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
-
-    #         results = {
-    #             'trgs': trgs,
-    #             'outs_TS_G': outs_TS_G,
-    #             'outs_TS': outs_TS,
-    #             'outs_CA': outs_CA,
-    #             'outs_CA_G': outs_CA_G,
-    #             'outs_tiny_ReLU': outs_tiny_ReLU,
-    #             'outs_tiny_GELU': outs_tiny_GELU
-    #         }
-
-    #         # Convert the dictionary to a dataframe
-    #         results_df = pd.DataFrame(results)
-    #         file_name = os.path.splitext(test_npz_file)[0]
-    #         # Define the file path for saving the Excel file    
-    #         excel_file_path = '/home/rosa/excel_test/' + str(file_name) + '_results.xlsx'
-
-    #         # Save the dataframe to the Excel file
-    #         results_df.to_excel(excel_file_path, index=False)
-
-    test_path = "data/test_data.npz"
-
-    generate_withlabels(base_path, test_path)
-    test_pt = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=True)
-
-    # print("\n*****    ReLU    ******")
-    loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
-    loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
-
-    # print("\n*****    GELU    ******")
-    loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
-    loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+            # print("\n*****    GELU    ******")
+            loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+            loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
 
 
-    acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
-    acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
-    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
-    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
+            acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+            acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz_path, base_path, act_func = 'ReLU', labels=True)
+            acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz_path, base_path, act_func = 'GELU', labels=True)
+            acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz_path, base_path, labels=True)
+
+            # results = {
+            #     'trgs': trgs,
+            #     'outs_TS_G': outs_TS_G,
+            #     'outs_TS': outs_TS,
+            #     'outs_CA': outs_CA,
+            #     'outs_CA_G': outs_CA_G,
+            #     'outs_tiny_ReLU': outs_tiny_ReLU,
+            #     'outs_tiny_GELU': outs_tiny_GELU
+            # }
+
+            # # Convert the dictionary to a dataframe
+            # results_df = pd.DataFrame(results)
+            # file_name = os.path.splitext(test_npz_file)[0]
+            # # Define the file path for saving the Excel file    
+            # excel_file_path = '/home/rosa/excel_test/' + str(file_name) + '_results.xlsx'
+
+            # # Save the dataframe to the Excel file
+            # results_df.to_excel(excel_file_path, index=False)
+
+    # test_path = "data/test_data.npz"
+
+    # generate_withlabels(base_path, test_path)
+    # test_pt = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=True)
+
+    # # print("\n*****    ReLU    ******")
+    # loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+    # loss_CS, acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+
+    # # print("\n*****    GELU    ******")
+    # loss_TS_G, acc_TS_G, outs_TS_G, trgs_G  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
+    # loss_CA_G, acc_CA_G, outs_CA_G, trgs_G  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
+
+
+    # acc_Attn, outs_attn, trgs = load_model_Attn(test_pt, base_path, labels=True)
+    # acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_path, base_path, act_func = 'ReLU', labels=True)
+    # acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_path, base_path, act_func = 'GELU', labels=True)
+    # acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_path, base_path, labels=True)
 
         
 

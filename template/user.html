@@ -112,37 +112,239 @@
         {% endfor %}
     </div>
     <div class="model">
-        <h2>Hình ảnh phân lớp các giai đoạn giấc ngủ</h2>
-        {% for file in image_names %}
-        {% if file.endswith('TS-TCC.png') %}
-        <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        {% endif %}
-        <br>
-        {% if file.endswith('CA-TCC.png') %}
-        <div>
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        <label for="select-model">Chọn mô hình</label>
+        <form name="select-model" id="select-model">
+            <input type="checkbox" name="model" id="modelAttn" value=1 onchange="updateChart()">AttnSleep</input>
+            <input type="checkbox" name="model" id="modelCa-tcc" value=2 onchange="updateChart()">CA-TCC</input>
+            <input type="checkbox" name="model" id="modelDeepSleep" value=3
+                onchange="updateChart()">DeepSleepNet</input>
+            <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
+            <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
+        </form>
+        <div id="label-predict"></div>
+        <div class="canvas-chart">
+            <canvas id="myChart"></canvas>
         </div>
-        {% endif %}
-        <br>
-        {% if file.endswith('AttnSleep.png') %}
-        <div>
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        <br>
-        {% if file.endswith('TinySleepNet.png') %}
-        <div>
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        <br>
-        {% if file.endswith('DeepSleepNet.png') %}
-        <div>
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %}
+
     </div>
 </body>
 
 </html>
+
+<script>
+    var predicts = JSON.parse('{{ predicts_json|safe }}');
+    console.log(predicts);
+    myChart = null
+    function updateChart() {
+        var selectedValues = [];
+        var checkboxes = document.getElementsByName("model");
+        var alertMessage = "";
+
+        // Lặp qua các checkbox và lấy giá trị của các checkbox đã được chọn
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                var value = checkboxes[i].value;
+                selectedValues.push(value);
+                alertMessage += value + "\n";
+            }
+        }
+
+        // Hiển thị giá trị các checkbox đã chọn trong một thông báo cảnh báo
+        console.log("Selected values:\n" + alertMessage);
+        // Gửi danh sách giá trị đã chọn đến máy chủ Flask để tạo biểu đồ
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onload = () => {
+            // print JSON response
+            if (xhttp.status >= 200 && xhttp.status < 300) {
+                // parse JSON
+                const response = JSON.parse(xhttp.responseText)
+                console.log("response ", response)
+                drawChart(response)
+            }
+        }
+        var sendData = {
+            selectedValues: selectedValues,
+            predicts: predicts
+        };
+        xhttp.open("POST", "/update-chart", true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.send(JSON.stringify(sendData));
+    }
+
+    function drawChart(data) {
+        var ctx = document.getElementById('myChart').getContext('2d');
+        ctx.canvas.width = 1200;
+        ctx.canvas.height = 300;
+        if (!data || Object.keys(data).length === 0) {
+            console.error('Invalid data');
+            return;
+        }
+
+        console.log("datahaha", data)
+        // const labelPredict = document.getElementById('label-predict');
+        // data.forEach(item => {
+        // // Tạo phần tử label
+        // const labelElement = document.createElement('p');
+        // labelElement.textContent = item.label;
+        // labelPredict.appendChild(labelElement);
+
+        // // Tạo phần tử data
+        // const dataElement = document.createElement('p');
+        // dataElement.textContent = item.values.join(', ');
+        // labelPredict.appendChild(dataElement);
+        // });
+
+        // Hủy biểu đồ hiện tại nếu đã tồn tại
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        const labelColors = {
+            'TS-TCC': 'blue',
+            'CA-TCC': 'green',
+            'AttnSleep': 'orange',
+            'DeepSleepNet': 'aqua',
+            'TinySleepNet': 'fuchsia'
+        };
+
+        const datasets = Object.entries(data.data).map(([label, values]) => {
+            const dataCounts = values.map((value, index) => {
+                switch (value) {
+                    case 'W':
+                        return 0;
+                    case 'N1':
+                        return 1;
+                    case 'N2':
+                        return 2;
+                    case 'N3':
+                        return 3;
+                    case 'REM':
+                        return 4;
+                    default:
+                        return 5;
+                }
+            });
+
+            return {
+                label: label,
+                data: dataCounts,
+                borderColor: labelColors[label],
+                fill: false
+            };
+        });
+
+        const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
+        datasets.sort((a, b) => {
+            const sumA = a.data.reduce((sum, value) => sum + value, 0);
+            const sumB = b.data.reduce((sum, value) => sum + value, 0);
+            return sumB - sumA;
+        });
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels_x,
+                datasets: datasets,
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            fontSize: 12,
+                        },
+                    },
+                    y: {
+                        min: 0,
+                        max: 4,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function (value, index, values) {
+                                switch (value) {
+                                    case 0:
+                                        return 'W';
+                                    case 1:
+                                        return 'N1';
+                                    case 2:
+                                        return 'N2';
+                                    case 3:
+                                        return 'N3';
+                                    case 4:
+                                        return 'REM';
+                                    default:
+                                        return '';
+                                }
+                            },
+                            fontSize: 12,
+                            outerHeight: 30,
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        // Hàm gửi yêu cầu AJAX để cập nhật dữ liệu biểu đồ
+        function updateChart(selectedValues) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var chartData = JSON.parse(this.responseText);
+                    console.log("chardata", chartData)
+                    drawChart(chartData);
+                }
+            };
+
+            // Tạo một chuỗi JSON từ các giá trị được chọn
+            var requestData = JSON.stringify(selectedValues);
+            console.log("predicts document ", predicts)
+            var sendData = {
+                selectedValues: selectedValues,
+                predicts: predicts
+            };
+            xhttp.open("POST", "/update-chart", true);
+            xhttp.setRequestHeader("Content-type", "application/json");
+            xhttp.send(JSON.stringify(sendData));
+
+        }
+
+        // Lắng nghe sự kiện onchange cho các phần tử HTML
+        var checkboxes = document.querySelectorAll("input[type='checkbox']");
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener("change", function () {
+                // Lấy danh sách các giá trị được chọn
+                var selectedValues = [];
+                checkboxes.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        selectedValues.push(checkbox.value);
+                    }
+                });
+                // Cập nhật dữ liệu biểu đồ
+                updateChart(selectedValues);
+            });
+        });
+        updateChart([]);
+    });
+
+
+    function updateImages() {
+        var reluImage = document.getElementById('relu-image');
+        var geluImage = document.getElementById('gelu-image');
+
+        if (document.querySelector('input[name="activation"][value="relu"]').checked) {
+            reluImage.style.display = "block";
+        } else {
+            reluImage.style.display = "none";
+        }
+
+        if (document.querySelector('input[name="activation"][value="gelu"]').checked) {
+            geluImage.style.display = "block";
+        } else {
+            geluImage.style.display = "none";
+        }
+    }
+</script>
