@@ -5,6 +5,12 @@
     <title>User</title>
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"
+        integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"
+        integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body {
             margin: 0;
@@ -110,6 +116,11 @@
         </div>
         {% endif %}
         {% endfor %}
+    </div>
+    <div class="data-raw">
+        <div style="width: 800px; height: 400px;">
+            <canvas id="rawChart"></canvas>
+        </div>
     </div>
     <div class="model">
         <label for="select-model">Chọn mô hình</label>
@@ -347,4 +358,73 @@
             geluImage.style.display = "none";
         }
     }
+
+    var inforRaw_x = predicts['inforRaw_x']
+    var inforRaw_y = predicts['inforRaw_y']
+
+    var ctx = document.getElementById('rawChart').getContext('2d');
+
+    // Dữ liệu biểu đồ
+    var data = {
+        labels: inforRaw_x,
+        datasets: [{
+            label: 'Amplitude',
+            data: inforRaw_y,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+            fill: false
+        }]
+    };
+
+    // Tùy chọn biểu đồ
+    var options = {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        plugins: {
+            zoom: {
+                zoom: {
+                    wheel: {
+                        enabled: true
+                    },
+                    pinch: {
+                        enabled: true
+                    },
+                    mode: 'xy'
+
+                }
+            },
+            dragData: {
+                // Cấu hình cho plugin kéo dữ liệu
+                round: 3, // Số chữ số sau dấu phẩy khi kéo dữ liệu
+            },
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time (s)'
+                },
+                ticks: {
+                    beginAtZero: true
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Amplitude'
+                }
+            }
+        }
+    };
+
+    // Vẽ biểu đồ
+    var rawChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: options
+    });
+
 </script>

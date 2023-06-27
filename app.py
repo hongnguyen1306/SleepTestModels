@@ -86,7 +86,6 @@ def raw_chart(base_path, data_path):
     plt.savefig(os.path.join(base_path, "static", filename))
     plt.close()
 
-
 def acc_chart(methods, accuracy, chart_filename):
     x_values = list(range(len(methods)))
 
@@ -166,6 +165,30 @@ def predict():
     acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
 
     preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, 'sum-result')
+    
+    psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
+    raw = mne.io.read_raw_edf(psg_file[0])
+    channel_names = ["EEG Fpz-Cz"]
+    start_time = 0 
+    end_time = 30
+
+    start_idx = int(start_time * raw.info['sfreq'])
+    end_idx = int(end_time * raw.info['sfreq'])
+
+    segment = raw[channel_names, start_idx:end_idx]
+    y_offset = np.array([5e-11, 0])
+    x = segment[1]
+    y = segment[0].T + y_offset
+
+    # print('///////// x ', x)
+    # inforRaw = {
+    #     'x': x,
+    #     'y': y.tolist()
+    # }
+
+    # inforRaw = json.dumps(inforRaw)
+
+
     predicts = {
             'true_labels': [],
             'TS-TCC_gelu': [],
@@ -175,7 +198,10 @@ def predict():
             'outs_attn': outs_attn.tolist(),
             'outs_tiny_ReLU': outs_tiny.tolist(),
             'outs_tiny_GELU': [],
-            'outs_deepsleep': outs_deepsleep.tolist()
+            'outs_deepsleep': outs_deepsleep.tolist(),
+            'inforRaw_x': x.tolist(),
+            'inforRaw_y': y.tolist(),
+
         }
 
     image_names = os.listdir('static/')
@@ -472,5 +498,5 @@ def update_chart():
 
 
 if __name__ == '__main__':
-    app.run(port=8080)
+    app.run(port=8088)
 
