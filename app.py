@@ -337,14 +337,14 @@ def evaluate():
         }
 
         scores = {
-            'relu_acc_TS': relu_acc_TS,
-            'relu_acc_CA': relu_acc_CA,
-            'gelu_acc_TS': gelu_acc_TS,
-            'gelu_acc_CA': gelu_acc_CA,
-            'total_acc_Attn': total_acc_Attn,
-            'relu_acc_tiny': relu_acc_tiny,
-            'gelu_acc_tiny': gelu_acc_tiny,
-            'total_acc_deepsleep': total_acc_deepsleep,
+            'TS-TCC': relu_acc_TS,
+            'CA-TCC': relu_acc_CA,
+            'TC-TCC GELU': gelu_acc_TS,
+            'CA-TCC GELU': gelu_acc_CA,
+            'AttnSleep': total_acc_Attn,
+            'TinySleepNet': relu_acc_tiny,
+            'TinySleepNet GELU': gelu_acc_tiny,
+            'DeepSleepNet': total_acc_deepsleep,
         }
 
             ###==================================================================================

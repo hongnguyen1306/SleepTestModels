@@ -195,7 +195,10 @@
             GELU</input>
         </form>
         <div class="canvas-chart">
-            <canvas id="myChart"></canvas>
+            <canvas id="myChartLine"></canvas>
+        </div>
+        <div class="canvas-chart">
+            <canvas id="myChartBar"></canvas>
         </div>
         <div class="footer">
 
@@ -212,6 +215,8 @@
     console.log(predicts);
     var scores = JSON.parse('{{ scores_json|safe }}');
     console.log('scores ', scores);
+    myChartLine = null
+    myChartBar = null
     myChart = null
 
     function updateChart() {
@@ -247,27 +252,32 @@
             }
         }
 
-        console.log("senData", sendData)
-        console.log("senDa predict", sendData.predicts[outs_deepsleep])
+
         xhttp.open("POST", "/update-chart", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send(JSON.stringify(sendData));
     }
 
     function drawChart(data) {
-        var ctx = document.getElementById('myChart').getContext('2d');
+        var ctx = document.getElementById('myChartLine').getContext('2d');
+        var chartBar = document.getElementById('myChartBar').getContext('2d');
         ctx.canvas.width = 1500;
         ctx.canvas.height = 400;
-        // ctx.defaults.font.size = 16;
-        // ctx.defaults.font.lineHeight = 1.5;
+        chartBar.canvas.width = 1200;
+        chartBar.canvas.height = 300;
+
         if (!data || Object.keys(data).length === 0) {
             console.error('Invalid data');
             return;
         }
 
         console.log("datahaha", data)
-        if (myChart) {
-            myChart.destroy();
+        if (myChartLine) {
+            myChartLine.destroy();
+        }
+
+        if (myChartBar) {
+            myChartBar.destroy();
         }
 
         const labelColors = {
@@ -276,11 +286,22 @@
             'AttnSleep': 'orange',
             'DeepSleepNet': 'aqua',
             'TinySleepNet': 'yellow',
-            'true_labels': 'navy',
             'TS-TCC GELU': 'lime',
             'CA-TCC GELU': 'maroon',
             'TinySleepNet GELU': 'copper',
             'Nhãn đúng': 'red'
+        };
+
+        const labelvl = {
+            'TS-TCC': 90,
+            'CA-TCC': 80,
+            'AttnSleep': 82,
+            'DeepSleepNet': 67,
+            'TinySleepNet': 89,
+            'TS-TCC GELU': 87,
+            'CA-TCC GELU': 83,
+            'TinySleepNet GELU': 85,
+            'Nhãn đúng': 100
         };
 
         const datasets = Object.entries(data.data).map(([label, values]) => {
@@ -302,7 +323,6 @@
 
             });
 
-
             return {
                 label: label,
                 data: dataCounts,
@@ -311,6 +331,7 @@
             };
         });
 
+
         const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
         datasets.sort((a, b) => {
             const sumA = a.data.reduce((sum, value) => sum + value, 0);
@@ -318,11 +339,11 @@
             return sumB - sumA;
         });
 
-        myChart = new Chart(ctx, {
+        myChartLine = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels_x,
-                datasets: datasets,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -359,6 +380,39 @@
                     }
                 }
             }
+        });
+
+        myChartBar = new Chart(chartBar, {
+            type: 'bar',
+            data: {
+                datasets: Object.entries(data.data).map(([label, values]) => {
+                    console.log('label ', label, "data ", scores[label])
+                    return {
+                        label: label,
+                        data: scores[label],
+                        backgroundColor: labelColors[label],
+                        borderColor: labelColors[label],
+                        borderWidth: 1,
+                    };
+                }),
+            },
+            options: {
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            fontSize: 16, // Kích thước chữ cho trục Ox
+                        },
+                    },
+                    y: {
+                        min: 0,  // Giá trị tối thiểu của trục Oy
+                        max: 100,  // Giá trị tối đa của trục Oy
+                        ticks: {
+                            fontSize: 16,
+                        }
+                    }
+                }
+            },
         });
 
     }
@@ -430,7 +484,6 @@
 
     var ctx = document.getElementById('rawChart').getContext('2d');
 
-    // Dữ liệu biểu đồ
     var data = {
         labels: inforRaw_x,
         datasets: [{
@@ -442,7 +495,6 @@
         }]
     };
 
-    // Tùy chọn biểu đồ
     var options = {
         responsive: true,
         interaction: {
@@ -462,6 +514,10 @@
 
                 }
             },
+            dragData: {
+                // Cấu hình cho plugin kéo dữ liệu
+                round: 3, // Số chữ số sau dấu phẩy khi kéo dữ liệu
+            },
         },
         scales: {
             x: {
@@ -471,10 +527,7 @@
                 },
                 ticks: {
                     beginAtZero: true
-                },
-                min: 0,
-                max: 30
-
+                }
             },
             y: {
                 title: {
@@ -491,33 +544,4 @@
         data: data,
         options: options
     });
-
-    function scroller(scroll, chart) {
-        console.log(scroll)
-        const dataLength = rawChart.data.labels.length;
-        if (scroll.deltaY > 0) {
-            if (rawChart.config.options.scales.x.max >= dataLength) {
-                rawChart.config.options.scales.x.min = dataLength - 30
-                rawChart.config.options.scales.x.max = dataLength
-            } else {
-                rawChart.config.options.scales.x.min += 1;
-                rawChart.config.options.scales.x.max += 1;
-            }
-        } else if (scroll.deltaY < 0) {
-            if (rawChart.config.options.scales.x.min <= 0) {
-                rawChart.config.options.scales.x.min = 0;
-                rawChart.config.options.scales.x.max = 30;
-            } else {
-                rawChart.config.options.scales.x.min -= 1
-                rawChart.config.options.scales.x.max -= 1
-            }
-        } else {
-            //'do' nothing
-        }
-    }
-    rawChart.update();
-
-    rawChart.canvas.addEventListener('wheel', (e) => {
-        scroller(e, rawChart)
-    })
 </script>
