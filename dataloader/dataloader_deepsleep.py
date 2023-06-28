@@ -152,7 +152,7 @@ class SeqDataLoader(object):
                     raise Exception("Found mismatch in sampling rate.")
 
                 # Reshape the data to match the input of the model - conv2d
-                tmp_data = np.squeeze(tmp_data)
+                tmp_data = np.squeeze(tmp_data, axis=(2,))
                 tmp_data = tmp_data[:, :, np.newaxis, np.newaxis]
                 
                 # # Reshape the data to match the input of the model - conv1d
