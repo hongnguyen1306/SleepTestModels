@@ -217,7 +217,7 @@
     myChartBar = null
     var scores = JSON.parse('{{ scores_json|safe }}');
     console.log('scores ', scores);
-    myChart = null
+    // myChart = null
 
     function updateChart() {
         var selectedValues = [];
@@ -385,7 +385,7 @@
         myChartBar = new Chart(chartBar, {
         type: 'bar',
         data: {
-            datasets: Object.entries(data.data).map(([label, values]) => {
+            datasets: Object.entries(score.data).map(([label, values]) => {
                 return {
                     label: label,
                     data: 70,
