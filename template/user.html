@@ -109,19 +109,18 @@
     <!-- <div class="data-and-activation"> -->
     <div class="data-raw">
         <h2> Hình ảnh dữ liệu edf thô </h2>
-        {% for file in image_names %}
+        <!-- {% for file in image_names %}
         {% if file.endswith('Fpz_Cz.png') %}
         <div class="img-chart">
             <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
         </div>
         {% endif %}
-        {% endfor %}
+        {% endfor %} -->
+        <div class="img-chart"></div>
+        <canvas id="rawChart" class="img-data-raw"></canvas>
+        <div class="img-chart"></div>
     </div>
-    <div class="data-raw">
-        <div style="width: 800px; height: 400px;">
-            <canvas id="rawChart"></canvas>
-        </div>
-    </div>
+
     <div class="model">
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
@@ -359,6 +358,8 @@
         }
     }
 
+
+    //// Vẽ biểu đồ zoom dữ liệu thô
     var inforRaw_x = predicts['inforRaw_x']
     var inforRaw_y = predicts['inforRaw_y']
 

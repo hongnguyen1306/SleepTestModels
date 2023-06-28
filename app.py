@@ -180,15 +180,6 @@ def predict():
     x = segment[1]
     y = segment[0].T + y_offset
 
-    # print('///////// x ', x)
-    # inforRaw = {
-    #     'x': x,
-    #     'y': y.tolist()
-    # }
-
-    # inforRaw = json.dumps(inforRaw)
-
-
     predicts = {
             'true_labels': [],
             'TS-TCC_gelu': [],
@@ -232,20 +223,35 @@ def evaluate():
     test_pt = data_generator(os.path.join(base_path, "data/test_data.pt"), labels=True)
 
     # print("\n*****    ReLU    ******")
-    total_loss, total_acc_TS, outs_TS, true_labels = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
-    total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
+    total_loss, relu_acc_TS, outs_TS, true_labels = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
+    total_loss, relu_acc_CA, outs_CA, trgs = load_model_TCC(test_pt, base_path, method='CA', act_func='ReLU')
 
     # print("\n*****    GELU    ******")
     total_loss, gelu_acc_TS, outs_TS_G, trgs  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
     total_loss, gelu_acc_CA, outs_CA_G, trgs  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
     
     total_acc_Attn, outs_attn , trgs = load_model_Attn(test_pt, base_path, labels=True)
-    acc_tiny_relu, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=True)
-    acc_tiny_gelu, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
+    relu_acc_tiny, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=True)
+    gelu_acc_tiny, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
     total_acc_deepsleep, total_f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
     
     data = np.load(os.path.join(base_path, "data/test_data.npz"))
     results = {}
+
+    # Lấy giá trị x y trong EEG
+    psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
+    raw = mne.io.read_raw_edf(psg_file[0])
+    channel_names = ["EEG Fpz-Cz"]
+    start_time = 0 
+    end_time = 30
+
+    start_idx = int(start_time * raw.info['sfreq'])
+    end_idx = int(end_time * raw.info['sfreq'])
+
+    segment = raw[channel_names, start_idx:end_idx]
+    y_offset = np.array([5e-11, 0])
+    x = segment[1]
+    y = segment[0].T + y_offset
 
     if len(data['y']) < 10:
         stage_mapping = {
@@ -286,12 +292,12 @@ def evaluate():
         random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
         methods_acc_relu = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
-        accuracy_relu = [total_acc_TS, total_acc_CA, total_acc_Attn, acc_tiny_relu, total_acc_deepsleep]
+        accuracy_relu = [relu_acc_TS, relu_acc_CA, total_acc_Attn, relu_acc_tiny, total_acc_deepsleep]
         acc_chart_relu = 'result_' + random_number + '-acc_relu.png'
         acc_chart(methods_acc_relu, accuracy_relu, acc_chart_relu)
 
         methods_acc_gelu = ['TS-TCC', 'CA-TCC', 'Tinysleepnet']
-        accuracy_gelu = [gelu_acc_TS, gelu_acc_CA, acc_tiny_gelu]
+        accuracy_gelu = [gelu_acc_TS, gelu_acc_CA, gelu_acc_tiny]
         acc_chart_gelu = 'result_' + random_number + '-acc_gelu.png'
         acc_chart(methods_acc_gelu, accuracy_gelu, acc_chart_gelu)
 
@@ -325,13 +331,26 @@ def evaluate():
             'outs_attn': outs_attn.tolist(),
             'outs_tiny_ReLU': outs_tiny_ReLU.tolist(),
             'outs_tiny_GELU': outs_tiny_GELU.tolist(),
-            'outs_deepsleep': outs_deepsleep.tolist()
+            'outs_deepsleep': outs_deepsleep.tolist(),
+            'inforRaw_x': x.tolist(),
+            'inforRaw_y': y.tolist(),
+        }
+
+        scores = {
+            'relu_acc_TS': relu_acc_TS,
+            'relu_acc_CA': relu_acc_CA,
+            'gelu_acc_TS': gelu_acc_TS,
+            'gelu_acc_CA': gelu_acc_CA,
+            'total_acc_Attn': total_acc_Attn,
+            'relu_acc_tiny': relu_acc_tiny,
+            'gelu_acc_tiny': gelu_acc_tiny,
+            'total_acc_deepsleep': total_acc_deepsleep,
         }
 
             ###==================================================================================
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
-    return render_template('evaluate.html', image_names=image_names,  predicts_json=json.dumps(predicts))
+    return render_template('evaluate.html', image_names=image_names,  predicts_json=json.dumps(predicts), scores_json=json.dumps(scores))
     # # Route cho trang HTML
     # @app.route('/evaluate2')
     # def index():
