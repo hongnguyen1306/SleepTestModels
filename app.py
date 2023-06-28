@@ -29,7 +29,7 @@ initial_chart_data = {
         # "TinySleepNet": 0
     }
 
-base_path = ""
+base_path = "/mnt/d/TestModels"
 data_path = "data"
 app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
 # socketio = SocketIO(app)

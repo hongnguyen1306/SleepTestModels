@@ -186,7 +186,10 @@
             GELU</input>
         </form>
         <div class="canvas-chart">
-            <canvas id="myChart"></canvas>
+            <canvas id="myChartLine"></canvas>
+        </div>
+        <div class="canvas-chart">
+            <canvas id="myChartBar"></canvas>
         </div>
         <div class="footer">
 
@@ -201,7 +204,8 @@
 
     var predicts = JSON.parse('{{ predicts_json|safe }}');
     console.log(predicts);
-    myChart = null
+    myChartLine = null
+    myChartBar = null
 
     function updateChart() {
         var selectedValues = [];
@@ -236,27 +240,32 @@
             }
         }
 
-        console.log("senData", sendData)
-        console.log("senDa predict", sendData.predicts[outs_deepsleep])
+
         xhttp.open("POST", "/update-chart", true);
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send(JSON.stringify(sendData));
     }
 
     function drawChart(data) {
-        var ctx = document.getElementById('myChart').getContext('2d');
+        var ctx = document.getElementById('myChartLine').getContext('2d');
+        var chartBar = document.getElementById('myChartBar').getContext('2d');
         ctx.canvas.width = 1500;
         ctx.canvas.height = 400;
-        // ctx.defaults.font.size = 16;
-        // ctx.defaults.font.lineHeight = 1.5;
+        chartBar.canvas.width =1200;
+        chartBar.canvas.height = 300;
+
         if (!data || Object.keys(data).length === 0) {
             console.error('Invalid data');
             return;
         }
 
         console.log("datahaha", data)
-        if (myChart) {
-            myChart.destroy();
+        if (myChartLine) {
+            myChartLine.destroy();
+        }
+
+        if (myChartBar) {
+            myChartBar.destroy();
         }
 
         const labelColors = {
@@ -265,11 +274,22 @@
             'AttnSleep': 'orange',
             'DeepSleepNet': 'aqua',
             'TinySleepNet': 'yellow',
-            'true_labels': 'navy',
             'TS-TCC GELU': 'lime',
             'CA-TCC GELU': 'maroon',
             'TinySleepNet GELU': 'copper',
             'Nhãn đúng': 'red'
+        };
+
+        const labelvl = {
+            'TS-TCC': 90,
+            'CA-TCC': 80,
+            'AttnSleep': 82,
+            'DeepSleepNet': 67,
+            'TinySleepNet': 89,
+            'TS-TCC GELU': 87,
+            'CA-TCC GELU': 83,
+            'TinySleepNet GELU': 85,
+            'Nhãn đúng': 100
         };
 
         const datasets = Object.entries(data.data).map(([label, values]) => {
@@ -291,7 +311,6 @@
 
             });
 
-
             return {
                 label: label,
                 data: dataCounts,
@@ -300,6 +319,7 @@
             };
         });
 
+
         const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
         datasets.sort((a, b) => {
             const sumA = a.data.reduce((sum, value) => sum + value, 0);
@@ -307,11 +327,11 @@
             return sumB - sumA;
         });
 
-        myChart = new Chart(ctx, {
+        myChartLine = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels_x,
-                datasets: datasets,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -348,6 +368,38 @@
                     }
                 }
             }
+        });
+
+        myChartBar = new Chart(chartBar, {
+        type: 'bar',
+        data: {
+            datasets: Object.entries(data.data).map(([label, values]) => {
+                return {
+                    label: label,
+                    data: 70,
+                    backgroundColor: labelColors[label],
+                    borderColor: labelColors[label],
+                    borderWidth: 1,
+                };
+            }),
+        },
+        options: {
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            fontSize: 16, // Kích thước chữ cho trục Ox
+                        },
+                    },
+                    y: {
+                        min: 0,  // Giá trị tối thiểu của trục Oy
+                        max: 100,  // Giá trị tối đa của trục Oy
+                        ticks: {
+                            fontSize: 16,
+                        }
+                    }
+                }
+        },
         });
 
     }
