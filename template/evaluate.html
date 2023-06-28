@@ -462,10 +462,6 @@
 
                 }
             },
-            dragData: {
-                // Cấu hình cho plugin kéo dữ liệu
-                round: 3, // Số chữ số sau dấu phẩy khi kéo dữ liệu
-            },
         },
         scales: {
             x: {
@@ -475,7 +471,10 @@
                 },
                 ticks: {
                     beginAtZero: true
-                }
+                },
+                min: 0,
+                max: 30
+
             },
             y: {
                 title: {
@@ -492,4 +491,33 @@
         data: data,
         options: options
     });
+
+    function scroller(scroll, chart) {
+        console.log(scroll)
+        const dataLength = rawChart.data.labels.length;
+        if (scroll.deltaY > 0) {
+            if (rawChart.config.options.scales.x.max >= dataLength) {
+                rawChart.config.options.scales.x.min = dataLength - 30
+                rawChart.config.options.scales.x.max = dataLength
+            } else {
+                rawChart.config.options.scales.x.min += 1;
+                rawChart.config.options.scales.x.max += 1;
+            }
+        } else if (scroll.deltaY < 0) {
+            if (rawChart.config.options.scales.x.min <= 0) {
+                rawChart.config.options.scales.x.min = 0;
+                rawChart.config.options.scales.x.max = 30;
+            } else {
+                rawChart.config.options.scales.x.min -= 1
+                rawChart.config.options.scales.x.max -= 1
+            }
+        } else {
+            //'do' nothing
+        }
+    }
+    rawChart.update();
+
+    rawChart.canvas.addEventListener('wheel', (e) => {
+        scroller(e, rawChart)
+    })
 </script>
