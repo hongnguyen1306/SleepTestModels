@@ -2,6 +2,15 @@
 <html>
 
 <head>
+    <title></title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"
+        integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"
+        integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body {
             margin: 0;
@@ -65,43 +74,119 @@
 </head>
 
 <body>
-    <h1>Hình ảnh dữ liệu EDF thô</h1>
-    {% for file in image_names %}
-    {% if file.endswith('Fpz_Cz.png') %}
+    <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
     <div class="data-raw">
-        <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        <h1>Hình ảnh dữ liệu EDF thô</h1>
+        <!-- {% for file in image_names %}
+        {% if file.endswith('Fpz_Cz.png') %}
+        <div class="img-chart">
+            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        </div>
+        {% endif %}
+        {% endfor %} -->
+        <div class="img-chart"></div>
+        <canvas id="rawChart" class="img-data-raw"></canvas>
+        <div class="img-chart"></div>
     </div>
-    {% endif %}
-    {% endfor %}
     <br>
     <h1>Kết quả nhận biết giai đoạn giấc ngủ</h1>
-    <div class="result-label"> 
+    <div class="result-label">
         <div class="label-container">
             <div class="label true-label">Giai đoạn nhận biết bởi chuyên gia (nhãn đúng): {{ results.true_label }}</div>
         </div>
         <h3>Nhãn dự đoán:</h3>
         {% for method, outs in results.items() %}
-            <div class="label-container">
-                {% if method == "outs_deepsleep"  and method != "true_label": %}
-                <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
-                {% elif method == "outs_tiny_ReLU"  and method != "true_label": %}
-                <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
-                {% elif method == "outs_attn"  and method != "true_label": %}
-                <div class="label predicted-label">AttnSleep : {{ outs }}</div>
-                {% elif method == "TS-TCC" and method != "true_label": %}
-                <div class="label predicted-label">TS-TCC: {{ outs }}</div>
-                {% elif method == "CA-TCC" and method != "true_label": %}
-                <div class="label predicted-label">CA-TCC: {{ outs }}</div>
-                {% elif method == "outs_tiny_GELU" and method != "true_label": %}
-                <div class="label predicted-label">TinySleepNet (GELU): {{ outs }}</div>
-                {% elif method == "TS-TCC_gelu" and method != "true_label": %}
-                <div class="label predicted-label">TS-TCC (GELU): {{ outs }}</div>
-                {% elif method == "CA-TCC_gelu" and method != "true_label": %}
-                <div class="label predicted-label">CA-TCC (GELU): {{ outs }}</div>
-                {% endif %}
-            </div>
+        <div class="label-container">
+            {% if method == "outs_deepsleep" and method != "true_label": %}
+            <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
+            {% elif method == "outs_tiny_ReLU" and method != "true_label": %}
+            <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
+            {% elif method == "outs_attn" and method != "true_label": %}
+            <div class="label predicted-label">AttnSleep : {{ outs }}</div>
+            {% elif method == "TS-TCC" and method != "true_label": %}
+            <div class="label predicted-label">TS-TCC: {{ outs }}</div>
+            {% elif method == "CA-TCC" and method != "true_label": %}
+            <div class="label predicted-label">CA-TCC: {{ outs }}</div>
+            {% elif method == "outs_tiny_GELU" and method != "true_label": %}
+            <div class="label predicted-label">TinySleepNet (GELU): {{ outs }}</div>
+            {% elif method == "TS-TCC_gelu" and method != "true_label": %}
+            <div class="label predicted-label">TS-TCC (GELU): {{ outs }}</div>
+            {% elif method == "CA-TCC_gelu" and method != "true_label": %}
+            <div class="label predicted-label">CA-TCC (GELU): {{ outs }}</div>
+            {% endif %}
+        </div>
         {% endfor %}
     </div>
 </body>
 
 </html>
+<script>
+    var predicts = JSON.parse('{{ predicts_json|safe }}');
+    console.log(predicts);
+    //// Vẽ biểu đồ zoom dữ liệu thô
+    var inforRaw_x = predicts['inforRaw_x']
+    var inforRaw_y = predicts['inforRaw_y']
+
+    var ctx = document.getElementById('rawChart').getContext('2d');
+
+    var data = {
+        labels: inforRaw_x,
+        datasets: [{
+            label: 'Amplitude',
+            data: inforRaw_y,
+            borderColor: 'green',
+            tension: 0.1,
+            fill: false
+        }]
+    };
+
+    var options = {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        plugins: {
+            zoom: {
+                zoom: {
+                    wheel: {
+                        enabled: true
+                    },
+                    pinch: {
+                        enabled: true
+                    },
+                    mode: 'xy'
+
+                }
+            },
+            dragData: {
+                // Cấu hình cho plugin kéo dữ liệu
+                round: 3, // Số chữ số sau dấu phẩy khi kéo dữ liệu
+            },
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time (s)'
+                },
+                ticks: {
+                    beginAtZero: true
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Amplitude'
+                }
+            }
+        }
+    };
+
+    // Vẽ biểu đồ
+    var rawChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: options
+    });
+</script>

@@ -32,7 +32,7 @@ initial_chart_data = {
 base_path = ""
 data_path = "data"
 app = Flask(__name__, template_folder=os.path.join(base_path,'template'))
-# socketio = SocketIO(app)
+app.debug = True
 
 def delete_files_with_extension(folder_path, extension):
     for file_name in os.listdir(folder_path):
@@ -66,7 +66,7 @@ def raw_chart(base_path, data_path):
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = 30
+    end_time = 20 * 30
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
@@ -284,10 +284,15 @@ def evaluate():
             'outs_deepsleep': outs_deepsleep_labels
         }
 
+        predicts = {
+            'inforRaw_x': x.tolist(),
+            'inforRaw_y': y.tolist(),
+        }
+
         image_names = os.listdir('static/')
         image_names = [img for img in image_names if img.endswith('.png')]
 
-        return render_template('predictOneLabel.html', results=results, image_names=image_names)
+        return render_template('predictOneLabel.html', results=results, image_names=image_names, predicts_json=json.dumps(predicts))
     else:
         random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
@@ -339,7 +344,7 @@ def evaluate():
         scores = {
             'TS-TCC': relu_acc_TS,
             'CA-TCC': relu_acc_CA,
-            'TC-TCC GELU': gelu_acc_TS,
+            'TS-TCC GELU': relu_acc_TS,
             'CA-TCC GELU': gelu_acc_CA,
             'AttnSleep': total_acc_Attn,
             'TinySleepNet': relu_acc_tiny,
@@ -351,15 +356,7 @@ def evaluate():
     image_names = os.listdir('static/')
     image_names = [img for img in image_names if img.endswith('.png')]
     return render_template('evaluate.html', image_names=image_names,  predicts_json=json.dumps(predicts), scores_json=json.dumps(scores))
-    # # Route cho trang HTML
-    # @app.route('/evaluate2')
-    # def index():
-    #     return render_template('evaluate.html')
 
-    # # Route để cung cấp dữ liệu biểu đồ ban đầu
-    # @app.route('/initial-chart-data', methods=['GET'])
-    # def get_initial_chart_data():
-    #     return jsonify(initial_chart_data)
 
 @app.route('/update-chart', methods=['POST'])
 def update_chart():
@@ -517,5 +514,5 @@ def update_chart():
 
 
 if __name__ == '__main__':
-    app.run(port=8088)
+    app.run(port=8088, debug=True)
 
