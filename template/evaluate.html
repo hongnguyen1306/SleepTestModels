@@ -11,6 +11,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"
         integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"
+        integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
 
@@ -301,12 +305,19 @@
                             backgroundColor: labelColors[label],
                             borderColor: labelColors[label],
                             borderWidth: 1,
+                            datalabels: {
+                                color: 'black',
+                                anchor: 'end',
+                                align: 'top',
+                                offset: 10
+                            }
                         };
 
                     }
                     return results
                 }),
             },
+            plugins: [ChartDataLabels],
             options: {
                 scales: {
                     x: {
@@ -322,7 +333,8 @@
                             fontSize: 16,
                         }
                     }
-                }
+                },
+
             },
         });
     }
