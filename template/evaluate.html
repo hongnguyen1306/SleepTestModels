@@ -11,123 +11,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"
         integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"
+        integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
 
-        .data-raw {
-            width: 94%;
-            text-align: center;
-            background-color: white;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .img-data-raw {
-            width: 80%;
-            object-fit: contain;
-            margin-bottom: 30px;
-            margin-top: 6px;
-        }
-
-        .activation {
-            width: 94%;
-            text-align: center;
-            background-color: white;
-            border-radius: 10px;
-        }
-
-        .image-activation {
-            width: 78%;
-            object-fit: contain;
-            margin-top: 20px;
-            /* margin-bottom: 30px; */
-        }
-
-        .data-and-activation {
-            width: 96%;
-            display: flex;
-            justify-content: space-between;
-            flex-direction: row;
-        }
-
-        input [type="checkbox"] {
-            padding: 8px 10px;
-            margin: 8px 0px;
-            box-sizing: border-box;
-            font-size: 18px;
-        }
-
-        label {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 600;
-            font-size: 24px;
-            color: black;
-            margin: 0;
-            padding: 0;
-            line-height: 50px;
-            margin-right: 20px;
-        }
-
-        .model {
-            width: 94%;
-            text-align: center;
-            margin-top: 50px;
-            background-color: white;
-            border-radius: 10px;
-            padding-top: 30px;
-        }
-
-        .image-model {
-            width: 98%;
-            object-fit: contain;
-            margin-top: 30px;
-            margin-bottom: 50px;
-        }
-
-        .canvas-chart {
-            text-align: center;
-            width: 100%;
-            height: 50vh;
-            object-fit: fill;
-        }
-
-        .label-predict {
-            width: 100%;
-            text-align: left;
-            font-size: 20px;
-            padding-left: 294px;
-        }
-
-        .footer {
-            width: 100%;
-            height: 150px;
-        }
     </style>
 </head>
 
 <body>
     <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
-    <!-- <div class="data-and-activation"> -->
     <div class="data-raw">
         <h2>Hình ảnh dữ liệu edf thô</h2>
-        <!-- {% for file in image_names %}
-        {% if file.endswith('Fpz_Cz.png') %}
-        <div class="img-chart">
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %} -->
         <div class="img-chart"></div>
         <canvas id="rawChart" class="img-data-raw"></canvas>
         <div class="img-chart"></div>
@@ -154,6 +51,7 @@
             {% endif %}
             {% endfor %}
         </div>
+
     </div>
 
     <div class="model">
@@ -164,21 +62,6 @@
         </div>
         {% endif %}
         {% endfor %}
-
-        <!-- {% for file in image_names %}
-        {% if file.endswith('true_labels_legend.png') %}
-        <div class="img-chart">
-            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %} -->
-        <!-- <div id="label-predict" class="label-predict">
-            <p name="label-model" id="deep" hidden="true">DeepSleepNet:</p>
-            <p name="label-model" id="tiny" hidden="true">TinySleepNet: </p>
-            <p name="label-model" id="attn" hidden="true">AttnSleep: </p>
-            <p name="label-model" id="ts" hidden="true">TS-TCC: </p>
-            <p name="label-model" id="ca" hidden="true">CA-TCC: </p>
-        </div> -->
 
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
@@ -280,6 +163,7 @@
             myChartBar.destroy();
         }
 
+
         const labelColors = {
             'TS-TCC': 'blue',
             'CA-TCC': 'green',
@@ -291,18 +175,6 @@
             'TinySleepNet GELU': 'copper',
             'Nhãn đúng': 'red'
         };
-
-        // const labelvl = {
-        //     'TS-TCC': 90,
-        //     'CA-TCC': 80,
-        //     'AttnSleep': 82,
-        //     'DeepSleepNet': 67,
-        //     'TinySleepNet': 89,
-        //     'TS-TCC GELU': 87,
-        //     'CA-TCC GELU': 83,
-        //     'TinySleepNet GELU': 85,
-        //     'Nhãn đúng': 100
-        // };
 
         const dataBar = Object.entries(scores.data).map(([label, values]) => {
             console.log('scores data ', scores);
@@ -354,6 +226,8 @@
             return sumB - sumA;
         });
 
+        // print("labels_x ", labels_x)
+
         myChartLine = new Chart(ctx, {
             type: 'line',
             data: {
@@ -397,11 +271,33 @@
             }
         });
 
+        let results = {}
         myChartBar = new Chart(chartBar, {
             type: 'bar',
             data: {
-                datasets: dataBar
+                labels: [""],
+                datasets: Object.entries(data.data).map(([label, values]) => {
+                    console.log('label ', label, "data ", scores[label])
+                    if (label != 'Nhãn đúng') {
+                        results = {
+                            label: label,
+                            data: [scores[label]],
+                            backgroundColor: labelColors[label],
+                            borderColor: labelColors[label],
+                            borderWidth: 1,
+                            datalabels: {
+                                color: 'black',
+                                anchor: 'end',
+                                align: 'top',
+                                offset: 10
+                            }
+                        };
+
+                    }
+                    return results
+                }),
             },
+            plugins: [ChartDataLabels],
             options: {
                 scales: {
                     x: {
@@ -417,10 +313,10 @@
                             fontSize: 16,
                         }
                     }
-                }
+                },
+
             },
         });
-
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {
@@ -485,6 +381,7 @@
     }
 
     //// Vẽ biểu đồ zoom dữ liệu thô
+
     var inforRaw_x = predicts['inforRaw_x']
     var inforRaw_y = predicts['inforRaw_y']
 
@@ -495,7 +392,7 @@
         datasets: [{
             label: 'Amplitude',
             data: inforRaw_y,
-            borderColor: 'rgb(75, 192, 192)',
+            borderColor: 'green',
             tension: 0.1,
             fill: false
         }]
@@ -550,4 +447,7 @@
         data: data,
         options: options
     });
+
+    // =========================================================
+    
 </script>
