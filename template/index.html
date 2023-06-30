@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      width: 100%;
+      /* width: 100%; */
       height: 100vh;
       display: flex;
       align-items: center;
@@ -18,7 +18,7 @@
     h1 {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       font-size: 40px;
-      margin-top: -100px;
+      margin-top: -50px;
       margin-bottom: 50px;
     }
 
@@ -98,18 +98,146 @@
       padding: 0;
     }
 
-    img {
+    .icon-upload1 {
       position: absolute;
       width: 40px;
       height: 40px;
-      top: 84%;
+      top: 81%;
       left: 53%;
       cursor: pointer;
     }
+
+    .icon-upload2 {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      top: 71%;
+      left: 53%;
+      cursor: pointer;
+    }
+
+    .logo-banner {
+      height: 100px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .logo-uit {
+      margin-right: 20px;
+    }
+
+    .logo-uit, .logo-httt, .logo-dhqg {
+      height: 90px;
+      width: auto;
+      object-fit: contain;
+    } 
+
+    .info-uni {
+      text-align: center;
+    }
+
+    header {
+      width: 100%;
+      height: 100px;
+      background-color: #DDE6ED;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-container {
+      height: 90px;
+      width: 80%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer {
+      width: 100%;
+      height: 100px;
+      background-color: #DDE6ED;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .footer-container {
+      width: 50%;
+      height: 90px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .info-uni1 {
+      font-size: 20px;
+    }
+
+    .info-name, .info-uni2 {
+      font-size: 18px;
+    }
+
+    .info-uni3 {
+      font-size: 16px;
+    } 
+
+    .info-student {
+      display: flex;
+      flex-direction: row;
+      font-size: 18px;
+    }
+
+    i {
+      margin-right: 20px;
+    }
+
+    .student-name {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-ths {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 20px;
+      align-items: start;
+    }
+
+    .info-ths-name {
+      font-size: 18px;
+      margin-top: -3px;
+    }
+
   </style>
 </head>
 
 <body>
+  <header>
+    <div class="header-container">
+      <div>
+        <img class="logo-uit" src="/static/uit.png" alt="">
+        <img class="logo-httt" src="/static/Logo-Khoa-HTTT.png" alt="">
+      </div>
+      <div class="info-uni">
+        <p class="info-uni1">KHÓA LUẬN TỐT NGHIỆP</p>
+        <p class="info-uni2">KHOA HỆ THỐNG THÔNG TIN</p>
+        <p class="info-uni3">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN - ĐHQG TP.HCM</p>
+      </div>
+    </div>
+  </header>
   <h1>CÔNG CỤ PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ</h1>
   <div class="home">
     <div id="label-selection" style="width: 200px;">
@@ -128,6 +256,7 @@
       <label for="edf_file2">Chọn tệp hypnogram:</label>
       <input class="input_hyn" type="file" id="edf_file2" name="file">
       <input type="submit" value="Tải lên">
+      <img class="icon-upload1" src="/static/upload.png" alt="">
     </form>
 
     <form id="without-labels-form" action="/predict" method="POST" enctype="multipart/form-data" style="display: none;">
@@ -136,8 +265,26 @@
       <input class="input_edf" type="file" id="edf_file1" name="file">
       <br>
       <input type="submit" value="Tải lên">
+      <img class="icon-upload2" src="/static/upload.png" alt="" />
     </form>
   </div>
+
+  <footer>
+    <div class="footer-container">
+      <!-- <img class="logo-banner" src="/static/banner_uit.png" alt=""> -->
+      <div class="info-student">
+        <i>Sinh viên thực hiện:</i>
+        <div class="student-name">
+          <p class="info-name">Tần Thùy Trang</p>
+          <p class="info-name">Nguyễn Thị Hồng</p>
+        </div>
+      </div>
+      <div class="info-ths">
+        <i>GVHD:</i><p class="info-ths-name">ThS. Dương Phi Long</p> 
+      </div>
+      <!-- <img class="logo-dhqg" src="/static/dhqg.png" alt=""> -->
+    </div>
+  </footer>
 </body>
 
 </html>

@@ -215,9 +215,7 @@
     console.log(predicts);
     myChartLine = null
     myChartBar = null
-    var scores = JSON.parse('{{ scores_json|safe }}');
-    console.log('scores ', scores);
-    // myChart = null
+    myChart = null
 
     function updateChart() {
         var selectedValues = [];
@@ -259,11 +257,13 @@
     }
 
     function drawChart(data) {
+        var scores = JSON.parse('{{ scores_json|safe }}');
+        console.log('scores ', scores);
         var ctx = document.getElementById('myChartLine').getContext('2d');
         var chartBar = document.getElementById('myChartBar').getContext('2d');
         ctx.canvas.width = 1500;
         ctx.canvas.height = 400;
-        chartBar.canvas.width =1200;
+        chartBar.canvas.width = 1200;
         chartBar.canvas.height = 300;
 
         if (!data || Object.keys(data).length === 0) {
@@ -292,17 +292,31 @@
             'Nhãn đúng': 'red'
         };
 
-        const labelvl = {
-            'TS-TCC': 90,
-            'CA-TCC': 80,
-            'AttnSleep': 82,
-            'DeepSleepNet': 67,
-            'TinySleepNet': 89,
-            'TS-TCC GELU': 87,
-            'CA-TCC GELU': 83,
-            'TinySleepNet GELU': 85,
-            'Nhãn đúng': 100
-        };
+        // const labelvl = {
+        //     'TS-TCC': 90,
+        //     'CA-TCC': 80,
+        //     'AttnSleep': 82,
+        //     'DeepSleepNet': 67,
+        //     'TinySleepNet': 89,
+        //     'TS-TCC GELU': 87,
+        //     'CA-TCC GELU': 83,
+        //     'TinySleepNet GELU': 85,
+        //     'Nhãn đúng': 100
+        // };
+
+        const dataBar = Object.entries(scores.data).map(([label, values]) => {
+            console.log('scores data ', scores);
+            console.log('sc data ', scores.data);
+            const dataCounts = values.map((value, index) => {
+                console.log('label ', label, "data ", values)
+                return {
+                label: label,
+                data: dataCounts,
+                borderColor: labelColors[label],
+                fill: false
+            };
+            });
+        });
 
         const datasets = Object.entries(data.data).map(([label, values]) => {
             const dataCounts = values.map((value, index) => {
@@ -330,6 +344,7 @@
                 fill: false
             };
         });
+
 
 
         const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
@@ -383,19 +398,11 @@
         });
 
         myChartBar = new Chart(chartBar, {
-        type: 'bar',
-        data: {
-            datasets: Object.entries(score.data).map(([label, values]) => {
-                return {
-                    label: label,
-                    data: 70,
-                    backgroundColor: labelColors[label],
-                    borderColor: labelColors[label],
-                    borderWidth: 1,
-                };
-            }),
-        },
-        options: {
+            type: 'bar',
+            data: {
+                datasets: dataBar
+            },
+            options: {
                 scales: {
                     x: {
                         beginAtZero: true,
@@ -411,7 +418,7 @@
                         }
                     }
                 }
-        },
+            },
         });
 
     }
@@ -483,7 +490,6 @@
 
     var ctx = document.getElementById('rawChart').getContext('2d');
 
-    // Dữ liệu biểu đồ
     var data = {
         labels: inforRaw_x,
         datasets: [{
@@ -495,7 +501,6 @@
         }]
     };
 
-    // Tùy chọn biểu đồ
     var options = {
         responsive: true,
         interaction: {
