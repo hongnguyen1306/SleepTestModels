@@ -66,10 +66,11 @@ def raw_chart(base_path, data_path):
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = 20 * 30
+    end_time = raw.n_times / raw.info['sfreq']
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
+    print("end_idx ", end_idx)
 
     segment = raw[channel_names, start_idx:end_idx]
     y_offset = np.array([5e-11, 0])
@@ -170,7 +171,7 @@ def predict():
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = 30
+    end_time = raw.n_times / raw.info['sfreq']
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
@@ -278,7 +279,7 @@ def evaluate():
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = 30
+    end_time = raw.n_times / raw.info['sfreq']
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])

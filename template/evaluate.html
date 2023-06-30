@@ -37,30 +37,6 @@
         <canvas id="rawChart" class="img-data-raw"></canvas>
         <div class="img-chart"></div>
     </div>
-    <div class="activation">
-        <label for="select_activation">Chọn hàm kích hoạt:</label>
-        <form name="select_activation" id="select_activation">
-            <input type="radio" name="activation" value="relu" onchange="updateImages()" checked>ReLU</input>
-            <input type="radio" name="activation" value="gelu" onchange="updateImages()">GELU</input>
-        </form>
-        <div id="image-container">
-            {% for file in image_names %}
-            {% if file.endswith('acc_relu.png') %}
-            <div class="img-chart" id="relu-image">
-                <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}"
-                    alt="Results">
-            </div>
-            {% endif %}
-            {% if file.endswith('acc_gelu.png') %}
-            <div class="img-chart" id="gelu-image" style="display: none;">
-                <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}"
-                    alt="Results">
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-
-    </div>
 
     <div class="model">
         {% for file in image_names %}
@@ -383,22 +359,6 @@
     });
 
 
-    function updateImages() {
-        var reluImage = document.getElementById('relu-image');
-        var geluImage = document.getElementById('gelu-image');
-
-        if (document.querySelector('input[name="activation"][value="relu"]').checked) {
-            reluImage.style.display = "block";
-        } else {
-            reluImage.style.display = "none";
-        }
-
-        if (document.querySelector('input[name="activation"][value="gelu"]').checked) {
-            geluImage.style.display = "block";
-        } else {
-            geluImage.style.display = "none";
-        }
-    }
 
     //// Vẽ biểu đồ zoom dữ liệu thô
 
@@ -449,13 +409,29 @@
                     text: 'Time (s)'
                 },
                 ticks: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    stepSize: 10
                 }
             },
             y: {
                 title: {
                     display: true,
                     text: 'Amplitude'
+                },
+                ticks: {
+                    callback: function (value, index, values) {
+                        return value.toFixed(5);  // Định dạng giá trị y thành 0.0005
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        var value = context.parsed.y;
+                        return value.toFixed(5);  // Định dạng giá trị hiển thị khi click chuột thành 0.0005
+                    }
                 }
             }
         }
