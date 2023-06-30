@@ -179,25 +179,61 @@ def predict():
     y_offset = np.array([5e-11, 0])
     x = segment[1]
     y = segment[0].T + y_offset
+    data = np.load(os.path.join(base_path, "data/test_data.npz"))
+    print('x shape ', len(data['x']))
 
-    predicts = {
-            'true_labels': [],
-            'TS-TCC_gelu': [],
-            'TS-TCC': outs_TS.tolist(),
-            'CA-TCC': outs_CA.tolist(),
-            'CA-TCC_gelu': [],
-            'outs_attn': outs_attn.tolist(),
-            'outs_tiny_ReLU': outs_tiny.tolist(),
-            'outs_tiny_GELU': [],
-            'outs_deepsleep': outs_deepsleep.tolist(),
+    if len(data['x']) < 10:
+        stage_mapping = {
+            0: "Giai đoạn Thức",
+            1: "Giai đoạn 1",
+            2: "Giai đoạn 2",
+            3: "Giai đoạn 3",
+            4: "REM"
+        }
+
+        trgs_labels = [stage_mapping[trg] for trg in trgs]
+        outs_TS_labels = [stage_mapping[out] for out in outs_TS]
+        outs_CA_labels = [stage_mapping[out] for out in outs_CA]
+        outs_attn_labels = [stage_mapping[out] for out in outs_attn]
+        outs_tiny_ReLU_labels = [stage_mapping[out] for out in outs_tiny]
+        outs_deepsleep_labels = [stage_mapping[out] for out in outs_deepsleep]
+
+        results = {
+            'TS-TCC': outs_TS_labels,
+            'CA-TCC': outs_CA_labels,
+            'outs_attn': outs_attn_labels,
+            'outs_tiny_ReLU': outs_tiny_ReLU_labels,
+            'outs_deepsleep': outs_deepsleep_labels
+        }
+
+        predicts = {
             'inforRaw_x': x.tolist(),
             'inforRaw_y': y.tolist(),
+        }
+
+        image_names = os.listdir('static/')
+        image_names = [img for img in image_names if img.endswith('.png')]
+
+        return render_template('predictOneLabel.html', results=results, image_names=image_names, predicts_json=json.dumps(predicts))
+    else:
+        predicts = {
+                'true_labels': [],
+                'TS-TCC_gelu': [],
+                'TS-TCC': outs_TS.tolist(),
+                'CA-TCC': outs_CA.tolist(),
+                'CA-TCC_gelu': [],
+                'outs_attn': outs_attn.tolist(),
+                'outs_tiny_ReLU': outs_tiny.tolist(),
+                'outs_tiny_GELU': [],
+                'outs_deepsleep': outs_deepsleep.tolist(),
+                'inforRaw_x': x.tolist(),
+                'inforRaw_y': y.tolist(),
 
         }
 
-    image_names = os.listdir('static/')
-    image_names = [img for img in image_names if img.endswith('.png')]
-    return render_template('user.html', image_names=image_names, predicts_json=json.dumps(predicts))
+        image_names = os.listdir('static/')
+        image_names = [img for img in image_names if img.endswith('.png')]
+        return render_template('user.html', image_names=image_names, predicts_json=json.dumps(predicts))
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
@@ -235,7 +271,6 @@ def evaluate():
     gelu_acc_tiny, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
     total_acc_deepsleep, total_f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
     
-    data = np.load(os.path.join(base_path, "data/test_data.npz"))
     results = {}
 
     # Lấy giá trị x y trong EEG
@@ -252,6 +287,7 @@ def evaluate():
     y_offset = np.array([5e-11, 0])
     x = segment[1]
     y = segment[0].T + y_offset
+    data = np.load(os.path.join(base_path, "data/test_data.npz"))
 
     if len(data['y']) < 10:
         stage_mapping = {
