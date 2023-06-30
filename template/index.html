@@ -147,13 +147,28 @@
   const withLabelsForm = document.getElementById('with-labels-form');
   const withoutLabelsForm = document.getElementById('without-labels-form');
 
+  const savedOption = localStorage.getItem('selectedOption');
+  if (savedOption === 'with-labels') {
+    document.getElementById('with-labels').checked = true;
+  } else if (savedOption === 'without-labels') {
+    document.getElementById('without-labels').checked = true;
+    withLabelsForm.style.display = 'none';
+    document.getElementById('without-labels-form').style.display = 'block';
+  }
+
+
   withLabelsRadio.addEventListener('change', () => {
     withLabelsForm.style.display = 'block';
     withoutLabelsForm.style.display = 'none';
+    localStorage.setItem('selectedOption', 'with-labels');
+
   });
 
   withoutLabelsRadio.addEventListener('change', () => {
     withLabelsForm.style.display = 'none';
     withoutLabelsForm.style.display = 'block';
+    localStorage.setItem('selectedOption', 'without-labels');
+
   });
+
 </script>

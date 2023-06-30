@@ -161,10 +161,15 @@
 
                 }
             },
-            dragData: {
-                // Cấu hình cho plugin kéo dữ liệu
-                round: 3, // Số chữ số sau dấu phẩy khi kéo dữ liệu
-            },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        var value = context.parsed.y;
+                        var scaledValue = value * 1e6;  // Quy đổi giá trị của trục y nhân lên 10^-6
+                        return scaledValue.toFixed(0);  // Định dạng giá trị hiển thị khi click chuột theo yêu cầu
+                    }
+                }
+            }
         },
         scales: {
             x: {
@@ -179,10 +184,16 @@
             y: {
                 title: {
                     display: true,
-                    text: 'Amplitude'
+                    text: 'Amplitude (µV)'
+                },
+                ticks: {
+                    callback: function (value, index, values) {
+                        var scaledValue = value * 1e6;  // Quy đổi giá trị của trục y nhân lên 10^-6
+                        return scaledValue.toFixed(0);  // Định dạng giá trị y theo yêu cầu
+                    }
                 }
             }
-        }
+        },
     };
 
     // Vẽ biểu đồ
