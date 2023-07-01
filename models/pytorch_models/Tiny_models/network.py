@@ -69,10 +69,8 @@ class TinySleepNet(nn.Module):
                     ('conv1', nn.Conv1d(in_channels=1, out_channels=128, kernel_size=first_filter_size, stride=first_filter_stride,
                         bias=False))
                 ])),
-                # nn.BatchNorm1d(128),
-                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
                 nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-                nn.GELU(),
+                nn.GELU(),  # Replace ReLU with nn.GELU
                 nn.ConstantPad1d(self.padding_edf['max_pool1'], 0),  # max p 1
                 nn.MaxPool1d(kernel_size=8, stride=8),
                 nn.Dropout(p=0.5),
@@ -81,33 +79,26 @@ class TinySleepNet(nn.Module):
                     ('conv2',
                     nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
                 ])),
-                # nn.BatchNorm1d(128),
-                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
                 nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-
-                nn.GELU(),
+                nn.GELU(),  # Replace ReLU with nn.GELU
                 nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv3
                 nn.Sequential(OrderedDict([
                     ('conv3',nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
                 ])),
-                # nn.BatchNorm1d(128),
-                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
                 nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-
-                nn.GELU(),
+                nn.GELU(),  # Replace ReLU with nn.GELU
                 nn.ConstantPad1d(self.padding_edf['conv2'], 0),  # conv4
                 nn.Sequential(OrderedDict([
                     ('conv4', nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8, stride=1, bias=False))
                 ])),
-                # nn.BatchNorm1d(128),
-                # nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.99),
                 nn.BatchNorm1d(num_features=128, eps=0.001, momentum=0.01),
-                nn.GELU(),
+                nn.GELU(),  # Replace ReLU with nn.GELU
                 nn.ConstantPad1d(self.padding_edf['max_pool2'], 0),  # max p 2
                 nn.MaxPool1d(kernel_size=4, stride=4),
                 nn.Flatten(),
                 nn.Dropout(p=0.5),
             )
+        
         # self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1, dropout=0.5)
         # self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1)
         self.rnn = nn.LSTM(input_size=2048, hidden_size=self.config['n_rnn_units'], num_layers=1, batch_first=True)

@@ -111,7 +111,7 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
         if method == 'TS':
             print("======         TS TCC Sleep   RELU      ======")
             load_from = "input/exp5TS/run_1/supervised_seed_123/saved_models"
-            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_17.pt"), map_location=device)
+            checkpoint = torch.load(os.path.join(base_path, load_from, "model_epoch_40.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
             load_from =  'input/exp3CA/run_1/supervised_seed_123/saved_models/'
@@ -121,7 +121,7 @@ def load_model_TCC(test_dl, base_path, method, act_func, labels=True):
         if method == 'TS':
             print("======         TS TCC Sleep GELU        ======")
             load_from = "input/TS_GELU_exp16/run_1/supervised_seed_123/saved_models"
-            checkpoint = torch.load(os.path.join(load_from, "model_epoch_26.pt"), map_location=device)
+            checkpoint = torch.load(os.path.join(load_from, "model_epoch_40.pt"), map_location=device)
         else:
             print("======         CA TCC Sleep         ======")
             load_from =  'input/exp5CAGELU/run_1/supervised_seed_123/saved_models/'

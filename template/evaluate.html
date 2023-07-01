@@ -196,8 +196,6 @@
                         ticks: {
                             stepSize: 1,
                             callback: function (value, index, values) {
-                                console.log(" 2222 value, index, values ", value, index, values)
-
                                 switch (value) {
                                     case 0:
                                         return 'W';
@@ -245,6 +243,7 @@
         });
 
         let results = {}
+        // Thêm plugin ChartDataLabels vào biểu đồ
         myChartBar = new Chart(chartBar, {
             type: 'bar',
             data: {
@@ -261,12 +260,14 @@
                                 color: 'black',
                                 anchor: 'end',
                                 align: 'top',
-                                offset: 10
+                                offset: 10,
+                                formatter: function (value) {
+                                    return value + '%';
+                                }
                             }
                         };
-
                     }
-                    return results
+                    return results;
                 }),
             },
             plugins: [ChartDataLabels],
@@ -283,14 +284,16 @@
                         max: 100,  // Giá trị tối đa của trục Oy
                         ticks: {
                             fontSize: 16,
+                            callback: function (value) {
+                                return value + '%';
+                            }
                         }
                     }
                 },
-
             },
         });
-    }
 
+    }
     document.addEventListener("DOMContentLoaded", function (event) {
         // Hàm gửi yêu cầu AJAX để cập nhật dữ liệu biểu đồ
         function updateChart(selectedValues) {
@@ -305,7 +308,6 @@
 
             // Tạo một chuỗi JSON từ các giá trị được chọn
             var requestData = JSON.stringify(selectedValues);
-            console.log("predicts document ", predicts)
             var sendData = {
                 selectedValues: selectedValues,
                 predicts: predicts
@@ -489,6 +491,11 @@
                         pinch: {
                             enabled: true
                         },
+                        mode: 'xy',
+                        scaleMode: 'xy',
+                    },
+                    pan: {
+                        enabled: true,
                         mode: 'xy',
                         scaleMode: 'xy',
                     },

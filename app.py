@@ -21,13 +21,7 @@ from dataloader.edf_to_npz import EdfToNpz, EdfToNpz_NoLabels
 from dataloader.edf_to_full_npz import EdfToFullNpz, EdfToFullNpz_NoLabels
 
 
-initial_chart_data = {
-        # "AttnSleep": 0,
-        # "CA-TCC": 0,
-        # "DeepSleepNet": 0,
-        # "TS-TCC": 0,
-        # "TinySleepNet": 0
-    }
+initial_chart_data = {}
 
 base_path = ""
 data_path = "data"
@@ -43,89 +37,6 @@ def delete_files_with_extension(folder_path, extension):
 def delete_files_async(folder_path, extension):
     thread = threading.Thread(target=delete_files_with_extension, args=(folder_path, extension))
     thread.start()
-
-def preds_chart(preds, name_chart):
-    random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    filename = 'preds' + random_number + '-'+ name_chart +'.png'
-    fig = plt.figure(figsize=(10, 3))
-    ax = fig.add_subplot(1, 1, 1)
-    ax.plot(preds, color='green')
-    ax.set_title(name_chart)
-    ax.set_ylabel('Sleep Stage')
-    ax.set_xlabel('Epoch')
-    ax.set_yticks(range(5))
-    ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
-
-    plt.savefig(os.path.join(base_path, "static", filename))
-    plt.close()
-
-def raw_chart(base_path, data_path):
-    random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    filename = 'file' + str(random_number) + '-' + 'Fpz_Cz.png'
-    psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
-    raw = mne.io.read_raw_edf(psg_file[0])
-    channel_names = ["EEG Fpz-Cz"]
-    start_time = 0 
-    # end_time = raw.n_times / raw.info['sfreq']
-    end_time = 30
-    start_idx = int(start_time * raw.info['sfreq'])
-    end_idx = int(end_time * raw.info['sfreq'])
-    print("end_idx ", end_idx)
-
-    segment = raw[channel_names, start_idx:end_idx]
-    y_offset = np.array([5e-11, 0])
-    x = segment[1]
-    y = segment[0].T + y_offset
-
-    # Plot and save the image of the channel
-    fig = plt.figure(figsize=(10, 3))
-    ax = fig.add_subplot(1, 1, 1)
-    ax.plot(x, y)
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Amplitude')
-    ax.set_title('Channel: ' + channel_names[0] + ' (Segment: ' + str(start_time) + 's to ' + str(end_time) + 's)')
-    plt.savefig(os.path.join(base_path, "static", filename))
-    plt.close()
-
-def acc_chart(methods, accuracy, chart_filename):
-    x_values = list(range(len(methods)))
-
-    plt.figure(figsize=(10, 4))
-    plt.bar(x_values, accuracy, align='center')
-    plt.xticks(x_values, methods, horizontalalignment='center')
-    plt.xlabel('Methods')
-    plt.ylabel('Accuracy')
-    plt.title('Evaluation of Methods')
-    plt.ylim(0, 100)
-    plt.tight_layout()
-    plt.gca().set_yticklabels(['{:.0f}%'.format(x) for x in plt.gca().get_yticks()])  # Format y-axis tick labels as percentages
-    plt.savefig(os.path.join(base_path, "static", chart_filename)) 
-    plt.close()
-
-def preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, name_chart):
-    random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    filename = 'preds' + random_number + '-' + name_chart + '.png'
-
-    fig = plt.figure(figsize=(10, 2))
-    ax = fig.add_subplot(1, 1, 1)
-
-    ax.plot(outs_TS, label='TS-TCC', color="green")
-    ax.plot(outs_CA, label='CA-TCC', color="blue")
-    ax.plot(outs_attn, label='Attn', color="chocolate")
-    ax.plot(outs_tiny, label='TinySleepNet', color="gold")
-    ax.plot(outs_deepsleep, label='DeepSleepNet', color="darkorchid")
-
-    ax.set_title(name_chart)
-    ax.set_xlabel('Epochs')
-    ax.set_ylabel('Sleep stage')
-
-    # ax.set_xticklabels('Epochs', fontsize=10)
-    ax.set_yticks(range(6))
-    ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'], fontsize=10)
-
-    plt.savefig(os.path.join('static', filename))
-    plt.close()
-
 
 @app.route('/', endpoint='home_endpoint')
 def home():
@@ -151,8 +62,6 @@ def predict():
         print("file ", filename)
         file.save(os.path.join(base_path, data_path , filename))
 
-    raw_chart(base_path=base_path,data_path=data_path)
-
     EdfToFullNpz_NoLabels(base_path, data_path)
     test_npz = "data/test_data.npz"
     generate_nolabels(base_path, "data/test_data.npz")
@@ -164,15 +73,13 @@ def predict():
     acc_Attn, outs_attn, trgs = load_model_Attn(test_dl, base_path, labels=False)
     acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=False)
     acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
-
-    preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny, outs_deepsleep, 'sum-result')
     
     psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
     # end_time = raw.n_times / raw.info['sfreq']
-    end_time = 30
+    end_time = 100
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
@@ -182,7 +89,6 @@ def predict():
     x = segment[1]
     y = segment[0].T + y_offset
     data = np.load(os.path.join(base_path, "data/test_data.npz"))
-    print('x shape ', len(data['x']))
 
     if len(data['x']) < 10:
         stage_mapping = {
@@ -253,7 +159,6 @@ def evaluate():
         print("file ", filename)
         file.save(os.path.join(base_path, data_path , filename))
 
-    raw_chart(base_path=base_path,data_path=data_path)
     EdfToFullNpz(base_path=base_path, data_dir=data_path)
 
     test_npz = 'data/test_data.npz'
@@ -281,7 +186,7 @@ def evaluate():
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0  
     # end_time = raw.n_times / raw.info['sfreq']
-    end_time = 200
+    end_time = 100
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
@@ -333,39 +238,6 @@ def evaluate():
 
         return render_template('predictOneLabel.html', results=results, image_names=image_names, predicts_json=json.dumps(predicts))
     else:
-        random_number = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-
-        methods_acc_relu = ['TS-TCC', 'CA-TCC', 'Attn', 'Tinysleepnet', 'Deepsleepnet']
-        accuracy_relu = [relu_acc_TS, relu_acc_CA, total_acc_Attn, relu_acc_tiny, total_acc_deepsleep]
-        acc_chart_relu = 'result_' + random_number + '-acc_relu.png'
-        acc_chart(methods_acc_relu, accuracy_relu, acc_chart_relu)
-
-        methods_acc_gelu = ['TS-TCC', 'CA-TCC', 'Tinysleepnet']
-        accuracy_gelu = [gelu_acc_TS, gelu_acc_CA, gelu_acc_tiny]
-        acc_chart_gelu = 'result_' + random_number + '-acc_gelu.png'
-        acc_chart(methods_acc_gelu, accuracy_gelu, acc_chart_gelu)
-
-        # True Labels Chart
-        true_labels_chart = 'result_' + random_number + '-true_line.png'
-        fig = plt.figure(figsize=(10, 2))
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot(trgs, color='red')
-        ax.set_title('True Labels')
-        ax.set_xlabel('30-s Epoch')
-        ax.set_ylabel('Sleep stage')
-        ax.set_yticks(range(6))
-        ax.set_yticklabels(['W', 'N1', 'N2', 'N3', 'REM'])
-        plt.savefig(os.path.join(os.path.join(base_path, "static", true_labels_chart)))
-        plt.close()
-
-        # Vẽ chú thích
-        plt.figure(figsize=(10, 1))
-        plt.axis('off')
-        plt.text(0, 0.5, 'Danh sách nhãn đúng là: ' + str(true_labels), fontsize=12, verticalalignment='center')
-        plt.savefig(os.path.join(os.path.join(base_path, "static", str(random_number) + '-true_labels_legend.png')))
-        plt.close()
-        preds_chart_5model(outs_TS, outs_CA, outs_attn, outs_tiny_ReLU, outs_deepsleep, 'sum-result')
-
         predicts = {
             'true_labels': true_labels.tolist(),
             'TS-TCC_gelu': outs_TS_G.tolist(),

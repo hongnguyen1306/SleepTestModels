@@ -1,6 +1,0 @@
-+0.0000000,60,Sleep stage 4
-+60.0000000,30,Sleep stage 3
-+90.0000000,30,Sleep stage 4
-+120.0000000,30,Sleep stage 1
-+150.0000000,60,Sleep stage 2
-+210.0000000,90,Sleep stage 3

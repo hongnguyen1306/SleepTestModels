@@ -169,7 +169,11 @@
                     enabled: true,
                     mode: 'xy',
                     scaleMode: 'xy',
-                }
+                },
+                limits: {
+                    x: { min: 'original', max: 'original' }, // Giới hạn zoom trục x
+                    y: { min: 'original', max: 'original' }, // Giới hạn zoom trục y
+                },
             },
             tooltip: {
                 callbacks: {
