@@ -18,7 +18,7 @@ from dataloader.generate import generate_nolabels, generate_withlabels
 from main import load_model_TCC, load_model_Attn, load_model_Tiny, load_model_Deepsleep
 from dataloader.dataloader_pytorch import data_generator
 from dataloader.edf_to_npz import EdfToNpz, EdfToNpz_NoLabels
-from dataloader.edf_to_full_npz import EdfToFullNpz
+from dataloader.edf_to_full_npz import EdfToFullNpz, EdfToFullNpz_NoLabels
 
 
 initial_chart_data = {
@@ -66,8 +66,8 @@ def raw_chart(base_path, data_path):
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = raw.n_times / raw.info['sfreq']
-
+    # end_time = raw.n_times / raw.info['sfreq']
+    end_time = 30
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
     print("end_idx ", end_idx)
@@ -153,7 +153,7 @@ def predict():
 
     raw_chart(base_path=base_path,data_path=data_path)
 
-    EdfToNpz_NoLabels(base_path, data_path)
+    EdfToFullNpz_NoLabels(base_path, data_path)
     test_npz = "data/test_data.npz"
     generate_nolabels(base_path, "data/test_data.npz")
     test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=False)
@@ -171,7 +171,8 @@ def predict():
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
     start_time = 0 
-    end_time = raw.n_times / raw.info['sfreq']
+    # end_time = raw.n_times / raw.info['sfreq']
+    end_time = 30
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])
@@ -278,8 +279,9 @@ def evaluate():
     psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
-    start_time = 0 
-    end_time = raw.n_times / raw.info['sfreq']
+    start_time = 0
+    # end_time = raw.n_times / raw.info['sfreq']
+    end_time = 30
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])

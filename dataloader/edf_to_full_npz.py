@@ -198,7 +198,7 @@ def EdfToFullNpz(base_path, data_dir):
 
         # Remove movement and unknown stages if any
         raw_ch = raw_ch_df.values[select_idx]
-
+        print("\n //// len(raw_ch) ", len(raw_ch))
         # Verify that we can split into 30-s epochs
         if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
             raise Exception("Something wrong")
@@ -254,6 +254,7 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
 
     # Select channel
     select_ch = args.select_ch
+    print('/// select_ch ', select_ch)
 
     # Read raw and annotation EDF files
     psg_fnames = glob.glob(os.path.join(base_path, data_dir, "*PSG.edf"))
@@ -276,7 +277,8 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
         select_idx = np.arange(len(raw_ch_df))
         raw_ch = raw_ch_df.values[select_idx]
 
-        # Verify that we can split into 30-s epochs
+        print("\n// len(raw_ch) ", len(raw_ch))
+        print("\n/// len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) ", len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate))
         if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
             raise Exception("Something wrong")
         n_epochs = len(raw_ch) / (EPOCH_SEC_SIZE * sampling_rate)
@@ -284,12 +286,10 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
         # Get epochs and their corresponding labels
         x = np.asarray(np.split(raw_ch, n_epochs)).astype(np.float32)
 
-        # Select on sleep periods
         start_idx = 0
         end_idx = len(x) - 1
         select_idx = np.arange(start_idx, end_idx+1)
         x = x[select_idx]
-        print(" *** x = x[select_idx] ", x)
         print(("Data after selection: {}".format(x.shape)))
 
         # Save
