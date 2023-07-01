@@ -106,18 +106,10 @@
 
 <body>
     <h1>Kết quả nhận biết các giai đoạn giấc ngủ</h1>
-    <!-- <div class="data-and-activation"> -->
     <div class="data-raw">
         <h2> Hình ảnh dữ liệu edf thô </h2>
-        <!-- {% for file in image_names %}
-        {% if file.endswith('Fpz_Cz.png') %}
-        <div class="img-chart">
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %} -->
         <div class="img-chart"></div>
-        <canvas id="rawChart" class="img-data-raw"></canvas>
+        <canvas id="rawChart" class="img-data-raw" width="1700" height="450"></canvas>
         <div class="img-chart"></div>
     </div>
 
@@ -291,7 +283,26 @@
                             outerHeight: 30,
                         }
                     }
-                }
+                },
+                plugins: {
+                    zoom: {
+                        zoom: {
+                            wheel: {
+                                enabled: true
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'xy',
+                            scaleMode: 'xy',
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                            scaleMode: 'xy',
+                        }
+                    },
+                },
             }
         });
 
@@ -372,6 +383,8 @@
             label: 'Amplitude',
             data: inforRaw_y,
             borderColor: 'green',
+            borderWidth: 2,
+            pointStyle: false,
             tension: 0.1,
             fill: false
         }]
@@ -393,8 +406,13 @@
                     pinch: {
                         enabled: true
                     },
-                    mode: 'xy'
-
+                    mode: 'xy',
+                    scaleMode: 'xy',
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'xy',
+                    scaleMode: 'xy',
                 }
             },
             tooltip: {

@@ -279,9 +279,9 @@ def evaluate():
     psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
     raw = mne.io.read_raw_edf(psg_file[0])
     channel_names = ["EEG Fpz-Cz"]
-    start_time = 0
+    start_time = 0  
     # end_time = raw.n_times / raw.info['sfreq']
-    end_time = 30
+    end_time = 200
 
     start_idx = int(start_time * raw.info['sfreq'])
     end_idx = int(end_time * raw.info['sfreq'])

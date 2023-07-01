@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      width: 100%;
+      /* width: 100%; */
       height: 100vh;
       display: flex;
       align-items: center;
@@ -18,7 +18,7 @@
     h1 {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       font-size: 40px;
-      margin-top: -100px;
+      margin-top: -50px;
       margin-bottom: 50px;
     }
 
@@ -70,10 +70,11 @@
       padding: 12px 20px;
       margin: 8px 0;
       box-sizing: border-box;
-      background-color: rgb(251, 152, 31);
+      background-color: rgb(255, 213, 174);
       border-radius: 5px;
       cursor: pointer;
       font-size: 16px;
+      border: 2px solid rgb(255, 132, 0);
     }
 
     input[type="submit"] {
@@ -81,12 +82,12 @@
       padding: 10px 20px;
       margin: 20px 0;
       box-sizing: border-box;
-      background-color: #00aff0;
+      background-color: #3baeff;
       padding-right: 60px;
       border-radius: 5px;
       font-size: 20px;
       cursor: pointer;
-      border: solid 1px gray;
+      border: solid 1px #4bb4ff;
     }
 
     p {
@@ -98,18 +99,149 @@
       padding: 0;
     }
 
-    img {
+    .icon-upload1 {
       position: absolute;
       width: 40px;
       height: 40px;
-      top: 84%;
+      top: 81%;
       left: 53%;
       cursor: pointer;
+    }
+
+    .icon-upload2 {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      top: 71%;
+      left: 53%;
+      cursor: pointer;
+    }
+
+    .logo-banner {
+      height: 100px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .logo-uit {
+      margin-right: 20px;
+    }
+
+    .logo-uit,
+    .logo-httt,
+    .logo-dhqg {
+      height: 70px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .info-uni {
+      text-align: center;
+    }
+
+    header {
+      width: 100%;
+      height: 80px;
+      background-color: #a4ebfd;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-container {
+      height: 90px;
+      width: 80%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer {
+      width: 100%;
+      height: 80px;
+      background-color: #a4ebfd;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .footer-container {
+      width: 75%;
+      height: 90px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .info-uni1 {
+      font-size: 18px;
+    }
+
+    .info-name,
+    .info-uni2 {
+      font-size: 18px;
+    }
+
+    .info-uni3 {
+      font-size: 16px;
+    }
+
+    .info-student {
+      display: flex;
+      flex-direction: row;
+      font-size: 17px;
+    }
+
+    i {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .student-name {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-ths {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 23px;
+      align-items: start;
+    }
+
+    .info-ths-name {
+      font-size: 17px;
+      margin-top: -3px;
     }
   </style>
 </head>
 
 <body>
+  <header>
+    <div class="header-container">
+      <div>
+        <img class="logo-uit" src="/static/logo/uit.png" alt="">
+        <img class="logo-httt" src="/static/logo/Logo-Khoa-HTTT.png" alt="">
+      </div>
+      <div class="info-uni">
+        <p class="info-uni1">KHÓA LUẬN TỐT NGHIỆP</p>
+        <p class="info-uni2">KHOA HỆ THỐNG THÔNG TIN</p>
+        <p class="info-uni3">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN - ĐHQG-HCM</p>
+      </div>
+    </div>
+  </header>
   <h1>CÔNG CỤ PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ</h1>
   <div class="home">
     <div id="label-selection" style="width: 200px;">
@@ -128,6 +260,7 @@
       <label for="edf_file2">Chọn tệp hypnogram:</label>
       <input class="input_hyn" type="file" id="edf_file2" name="file">
       <input type="submit" value="Tải lên">
+      <img class="icon-upload1" src="/static/logo/upload.png" alt="">
     </form>
 
     <form id="without-labels-form" action="/predict" method="POST" enctype="multipart/form-data" style="display: none;">
@@ -136,8 +269,33 @@
       <input class="input_edf" type="file" id="edf_file1" name="file">
       <br>
       <input type="submit" value="Tải lên">
+      <img class="icon-upload2" src="/static/logo/upload.png" alt="" />
     </form>
   </div>
+
+  <footer>
+    <div class="footer-container">
+      <div class="info-student">
+        <i>Đề tài:</i>
+        <div class="student-name">
+          <p class="info-name">PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ
+            <br>DỰA TRÊN PHƯƠNG PHÁP HỌC SÂU
+          </p>
+        </div>
+      </div>
+      <div class="info-student">
+        <i>Sinh viên thực hiện:</i>
+        <div class="student-name">
+          <p class="info-name">Tần Thùy Trang</p>
+          <p class="info-name">Nguyễn Thị Hồng</p>
+        </div>
+      </div>
+      <div class="info-ths">
+        <i>GVHD:</i>
+        <p class="info-ths-name">ThS. Dương Phi Long</p>
+      </div>
+    </div>
+  </footer>
 </body>
 
 </html>

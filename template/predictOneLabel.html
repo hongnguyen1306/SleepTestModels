@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title></title>
+    <title>Kết Quả</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"
@@ -11,6 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"
         integrity="sha512-wUYbRPLV5zs6IqvWd88HIqZU/b8TBx+I8LEioQ/UC0t5EMCLApqhIAnUg7EsAzdbhhdgW07TqYDdH3QEXRcPOQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
     <style>
         body {
             margin: 0;
@@ -57,7 +59,7 @@
         .label {
             padding: 5px 10px;
             background-color: #f0f0f0;
-            border: 1px solid #ccc;
+            border: 1px solid #ffffff;
             border-radius: 4px;
             font-size: 20px;
         }
@@ -77,15 +79,8 @@
     <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
     <div class="data-raw">
         <h1>Hình ảnh dữ liệu EDF thô</h1>
-        <!-- {% for file in image_names %}
-        {% if file.endswith('Fpz_Cz.png') %}
-        <div class="img-chart">
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %} -->
         <div class="img-chart"></div>
-        <canvas id="rawChart" class="img-data-raw"></canvas>
+        <canvas id="rawChart" class="img-data-raw" width="1700" height="450"></canvas>
         <div class="img-chart"></div>
     </div>
     <br>
@@ -96,28 +91,36 @@
             <div class="label true-label">Giai đoạn nhận biết bởi chuyên gia (nhãn đúng): {{ results.true_label }}</div>
         </div>
         {% endif %}
-        <h3>Nhãn dự đoán:</h3>
-        {% for method, outs in results.items() %}
+        <h3>Kết quả dự đoán</h3>
         <div class="label-container">
-            {% if method == "outs_deepsleep" and method != "true_label": %}
-            <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
-            {% elif method == "outs_tiny_ReLU" and method != "true_label": %}
-            <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
-            {% elif method == "outs_attn" and method != "true_label": %}
-            <div class="label predicted-label">AttnSleep : {{ outs }}</div>
-            {% elif method == "TS-TCC" and method != "true_label": %}
-            <div class="label predicted-label">TS-TCC: {{ outs }}</div>
-            {% elif method == "CA-TCC" and method != "true_label": %}
-            <div class="label predicted-label">CA-TCC: {{ outs }}</div>
-            {% elif method == "outs_tiny_GELU" and method != "true_label": %}
-            <div class="label predicted-label">TinySleepNet (GELU): {{ outs }}</div>
-            {% elif method == "TS-TCC_gelu" and method != "true_label": %}
-            <div class="label predicted-label">TS-TCC (GELU): {{ outs }}</div>
-            {% elif method == "CA-TCC_gelu" and method != "true_label": %}
-            <div class="label predicted-label">CA-TCC (GELU): {{ outs }}</div>
-            {% endif %}
+            <div class="label-column">
+                {% for method, outs in results.items() %}
+                {% if method == "outs_deepsleep" and method != "true_label": %}
+                <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
+                {% elif method == "outs_tiny_ReLU" and method != "true_label": %}
+                <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
+                {% elif method == "outs_attn" and method != "true_label": %}
+                <div class="label predicted-label">AttnSleep : {{ outs }}</div>
+                {% elif method == "TS-TCC" and method != "true_label": %}
+                <div class="label predicted-label">TS-TCC: {{ outs }}</div>
+                {% elif method == "CA-TCC" and method != "true_label": %}
+                <div class="label predicted-label">CA-TCC: {{ outs }}</div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <div class="label-column">
+                {% for method, outs in results.items() %}
+                {% if method == "outs_tiny_GELU" and method != "true_label": %}
+                <div class="label predicted-label">TinySleepNet (GELU): {{ outs }}</div>
+                {% elif method == "TS-TCC_gelu" and method != "true_label": %}
+                <div class="label predicted-label">TS-TCC (GELU): {{ outs }}</div>
+                {% elif method == "CA-TCC_gelu" and method != "true_label": %}
+                <div class="label predicted-label">CA-TCC (GELU): {{ outs }}</div>
+                {% endif %}
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
+
     </div>
 </body>
 
@@ -137,6 +140,8 @@
             label: 'Amplitude',
             data: inforRaw_y,
             borderColor: 'green',
+            borderWidth: 2,
+            pointStyle: false,
             tension: 0.1,
             fill: false
         }]
@@ -157,8 +162,13 @@
                     pinch: {
                         enabled: true
                     },
-                    mode: 'xy'
-
+                    mode: 'xy',
+                    scaleMode: 'xy',
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'xy',
+                    scaleMode: 'xy',
                 }
             },
             tooltip: {

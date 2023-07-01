@@ -23,45 +23,21 @@
 
 <body>
     <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
-    <!-- <div class="data-and-activation"> -->
     <div class="data-raw">
         <h2>Hình ảnh dữ liệu edf thô</h2>
-        <!-- {% for file in image_names %}
-        {% if file.endswith('Fpz_Cz.png') %}
-        <div class="img-chart">
-            <img class="img-data-raw" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+        <div class="canvas-chart">
+            <canvas id="rawChart" width="1700" height="450"></canvas>
         </div>
-        {% endif %}
-        {% endfor %} -->
-        <div class="img-chart"></div>
-        <canvas id="rawChart" class="img-data-raw"></canvas>
-        <div class="img-chart"></div>
+    </div>
     </div>
 
-    <div class="model">
-        {% for file in image_names %}
-        {% if file.endswith('true_line.png') %}
-        <div class="img-chart">
-            <img class="image-model" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
+    <div class="data-raw">
+        <h2>Nhãn dữ liệu đúng</h2>
+        <div class="canvas-chart">
+            <canvas id="trueLabelsChart" width="1500" height="350"></canvas>
         </div>
-        {% endif %}
-        {% endfor %}
-
-        <!-- {% for file in image_names %}
-        {% if file.endswith('true_labels_legend.png') %}
-        <div class="img-chart">
-            <img class="image-activation" src="{{ url_for('static', filename=file, _external=True) }}" alt="Results">
-        </div>
-        {% endif %}
-        {% endfor %} -->
-        <!-- <div id="label-predict" class="label-predict">
-            <p name="label-model" id="deep" hidden="true">DeepSleepNet:</p>
-            <p name="label-model" id="tiny" hidden="true">TinySleepNet: </p>
-            <p name="label-model" id="attn" hidden="true">AttnSleep: </p>
-            <p name="label-model" id="ts" hidden="true">TS-TCC: </p>
-            <p name="label-model" id="ca" hidden="true">CA-TCC: </p>
-        </div> -->
-
+    </div>
+    <div class="model" style="margin-top: 0px;">
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
             <input type="checkbox" name="model" id="modelTrue" value=0 onchange="updateChart()">Nhãn đúng</input>
@@ -81,9 +57,6 @@
         </div>
         <div class="canvas-chart">
             <canvas id="myChartBar"></canvas>
-        </div>
-        <div class="footer">
-
         </div>
 
     </div>
@@ -117,10 +90,6 @@
                 alertMessage += value + "\n";
             }
         }
-
-
-        // Hiển thị giá trị các checkbox đã chọn trong một thông báo cảnh báo
-        console.log("Selected values:\n" + alertMessage);
         // Gửi danh sách giá trị đã chọn đến máy chủ Flask để tạo biểu đồ
         var xhttp = new XMLHttpRequest();
 
@@ -133,7 +102,6 @@
                 drawChart(response)
             }
         }
-
 
         xhttp.open("POST", "/update-chart", true);
         xhttp.setRequestHeader("Content-type", "application/json");
@@ -153,7 +121,6 @@
             return;
         }
 
-        console.log("datahaha", data)
         if (myChartLine) {
             myChartLine.destroy();
         }
@@ -175,18 +142,6 @@
             'Nhãn đúng': 'red'
         };
 
-        const labelvl = {
-            'TS-TCC': 90,
-            'CA-TCC': 80,
-            'AttnSleep': 82,
-            'DeepSleepNet': 67,
-            'TinySleepNet': 89,
-            'TS-TCC GELU': 87,
-            'CA-TCC GELU': 83,
-            'TinySleepNet GELU': 85,
-            'Nhãn đúng': 100
-        };
-
         const datasets = Object.entries(data.data).map(([label, values]) => {
             const dataCounts = values.map((value, index) => {
                 switch (value) {
@@ -205,7 +160,6 @@
                 }
 
             });
-
             return {
                 label: label,
                 data: dataCounts,
@@ -214,15 +168,12 @@
             };
         });
 
-
         const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
         datasets.sort((a, b) => {
             const sumA = a.data.reduce((sum, value) => sum + value, 0);
             const sumB = b.data.reduce((sum, value) => sum + value, 0);
             return sumB - sumA;
         });
-
-        // print("labels_x ", labels_x)
 
         myChartLine = new Chart(ctx, {
             type: 'line',
@@ -245,6 +196,8 @@
                         ticks: {
                             stepSize: 1,
                             callback: function (value, index, values) {
+                                console.log(" 2222 value, index, values ", value, index, values)
+
                                 switch (value) {
                                     case 0:
                                         return 'W';
@@ -263,8 +216,32 @@
                             fontSize: 16,
                         }
                     }
-                }
-            }
+                },
+                plugins: {
+                    zoom: {
+                        zoom: {
+                            wheel: {
+                                enabled: true
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'xy',
+                            scaleMode: 'xy',
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                            scaleMode: 'xy',
+                        },
+                        limits: {
+                            x: { min: 'original', max: 'original' }, // Giới hạn zoom trục x
+                            y: { min: 'original', max: 'original' }, // Giới hạn zoom trục y
+                        },
+                    },
+                },
+            },
+
         });
 
         let results = {}
@@ -273,7 +250,6 @@
             data: {
                 labels: [""],
                 datasets: Object.entries(data.data).map(([label, values]) => {
-                    console.log('label ', label, "data ", scores[label])
                     if (label != 'Nhãn đúng') {
                         results = {
                             label: label,
@@ -358,23 +334,22 @@
         updateChart([]);
     });
 
-
-
-    //// Vẽ biểu đồ zoom dữ liệu thô
+    ///////  BIỂU ĐỒ DỮ LIỆU THÔ
 
     var inforRaw_x = predicts['inforRaw_x']
     var inforRaw_y = predicts['inforRaw_y']
-    console.log("predict x,y ", predicts)
+    console.log("inforRaw_y ", inforRaw_y)
 
     var ctx = document.getElementById('rawChart').getContext('2d');
-
     var data = {
         labels: inforRaw_x,
         datasets: [{
             label: 'Amplitude',
             data: inforRaw_y,
             borderColor: 'green',
+            borderWidth: 2,
             tension: 0.1,
+            pointStyle: false,
             fill: false
         }]
     };
@@ -394,9 +369,18 @@
                     pinch: {
                         enabled: true
                     },
-                    mode: 'xy'
-
-                }
+                    mode: 'xy',
+                    scaleMode: 'xy',
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'xy',
+                    scaleMode: 'xy',
+                },
+                limits: {
+                    x: { min: 'original', max: 'original' }, // Giới hạn zoom trục x
+                    y: { min: 'original', max: 'original' }, // Giới hạn zoom trục y
+                },
             },
             tooltip: {
                 callbacks: {
@@ -406,7 +390,7 @@
                         return scaledValue.toFixed(0);  // Định dạng giá trị hiển thị khi click chuột theo yêu cầu
                     }
                 }
-            }
+            },
         },
         scales: {
             x: {
@@ -434,10 +418,88 @@
         },
     };
 
-    // Vẽ biểu đồ
     var rawChart = new Chart(ctx, {
         type: 'line',
         data: data,
         options: options
     });
+
+    ////// BIỂU ĐỒ TRUE LABELS
+    const trueLabels = document.getElementById('trueLabelsChart').getContext('2d');
+
+    const true_labels = predicts['true_labels']
+    console.log(" true_labels ", true_labels)
+    const trueLabels_x = Array.from(Array(true_labels.length), (_, i) => (i + 1).toString());
+
+
+    const trueLabelsChart = new Chart(trueLabels, {
+        type: 'line',
+        data: {
+            labels: trueLabels_x,
+            datasets: [{
+                label: 'true labels',
+                data: true_labels,
+                borderColor: 'red',
+                pointStyle: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        fontSize: 16, // Kích thước chữ cho trục Ox
+                    },
+                },
+                y: {
+                    min: 0,  // Giá trị tối thiểu của trục Oy
+                    max: 4,  // Giá trị tối đa của trục Oy
+                    ticks: {
+                        stepSize: 1,
+                        callback: function (value, index, values) {
+                            switch (value) {
+                                case 0:
+                                    return 'W';
+                                case 1:
+                                    return 'N1';
+                                case 2:
+                                    return 'N2';
+                                case 3:
+                                    return 'N3';
+                                case 4:
+                                    return 'REM';
+                                default:
+                                    return '';
+                            }
+                        },
+                        fontSize: 16,
+                    }
+                }
+            },
+            plugins: {
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'xy',
+                        scaleMode: 'xy',
+                    },
+                    limits: {
+                        x: { min: 0, max: 'original' }, // Giới hạn zoom trục x
+                        y: { min: 0, max: 'original' }, // Giới hạn zoom trục y
+                    },
+                },
+            },
+        },
+
+    });
+
 </script>
