@@ -19,12 +19,12 @@ body {
     margin-bottom: 20px;
 }
 
-.img-data-raw {
+/* .img-data-raw {
     width: 80%;
     object-fit: contain;
     margin-bottom: 30px;
     margin-top: 6px;
-}
+} */
 
 .activation {
     width: 94%;
@@ -94,3 +94,24 @@ label {
     font-size: 20px;
     padding-left: 294px;
 }
+
+.chart-raw-box {
+    position: relative;
+    width: 1300px;
+    max-width: 1300px;
+    /* height: 620px !important; */
+    overflow-x: scroll;
+}	
+
+.chart-body {
+    height: 620px;
+} 
+
+ /* .chart-raw-box > canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events:none;
+ } */
+
+

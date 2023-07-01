@@ -25,9 +25,17 @@
     <h1>Kết quả phân lớp giai đoạn giấc ngủ</h1>
     <div class="data-raw">
         <h2>Hình ảnh dữ liệu edf thô</h2>
-        <div class="img-chart"></div>
+        <div class="data-raw">
+            <h2>Hình ảnh dữ liệu edf thô</h2>
+            <div class="chart-raw-box">
+                <div class="chart-body">
+                    <canvas id="rawChart"></canvas>
+                </div>
+            </div>
+        </div>	
+        <!-- <div class="img-chart"></div>
         <canvas id="rawChart" class="img-data-raw"></canvas>
-        <div class="img-chart"></div>
+        <div class="img-chart"></div> -->
     </div>
     <div class="activation">
         <label for="select_activation">Chọn hàm kích hoạt:</label>
@@ -96,6 +104,8 @@
 
     var predicts = JSON.parse('{{ predicts_json|safe }}');
     console.log(predicts);
+    var scores = JSON.parse('{{ scores_json|safe }}');
+    console.log('scores ', scores);
     myChartLine = null
     myChartBar = null
     myChart = null
@@ -140,8 +150,6 @@
     }
 
     function drawChart(data) {
-        var scores = JSON.parse('{{ scores_json|safe }}');
-        console.log('scores ', scores);
         var ctx = document.getElementById('myChartLine').getContext('2d');
         var chartBar = document.getElementById('myChartBar').getContext('2d');
         ctx.canvas.width = 1500;
@@ -176,19 +184,17 @@
             'Nhãn đúng': 'red'
         };
 
-        const dataBar = Object.entries(scores.data).map(([label, values]) => {
-            console.log('scores data ', scores);
-            console.log('sc data ', scores.data);
-            const dataCounts = values.map((value, index) => {
-                console.log('label ', label, "data ", values)
-                return {
-                label: label,
-                data: dataCounts,
-                borderColor: labelColors[label],
-                fill: false
-            };
-            });
-        });
+        const labelvl = {
+            'TS-TCC': 90,
+            'CA-TCC': 80,
+            'AttnSleep': 82,
+            'DeepSleepNet': 67,
+            'TinySleepNet': 89,
+            'TS-TCC GELU': 87,
+            'CA-TCC GELU': 83,
+            'TinySleepNet GELU': 85,
+            'Nhãn đúng': 100
+        };
 
         const datasets = Object.entries(data.data).map(([label, values]) => {
             const dataCounts = values.map((value, index) => {
@@ -216,7 +222,6 @@
                 fill: false
             };
         });
-
 
 
         const labels_x = Array.from(Array(datasets[0].data.length), (_, i) => (i + 1).toString());
@@ -448,6 +453,11 @@
         options: options
     });
 
-    // =========================================================
-    
+    const chartBody = document.querySelector('.chart-body');
+    const totalEpochs = rawChart.data.labels.length;
+    // rawChart.data.labels.length
+    if (totalEpochs > 30) {
+        const newWidth = 1300 + ((rawChart.data.labels.length - 30) * 1300); 
+        chartBody.style.width = 'newWidth' + 'px';
+    }
 </script>
