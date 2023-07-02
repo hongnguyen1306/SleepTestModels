@@ -277,15 +277,16 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
         select_idx = np.arange(len(raw_ch_df))
         raw_ch = raw_ch_df.values[select_idx]
 
-        print("\n// len(raw_ch) ", len(raw_ch))
-        print("\n/// len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) ", len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate))
-        if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
-            raise Exception("Something wrong")
+        
+        # if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
+        #     raise Exception("Something wrong")
+        n_trims = len(select_idx) % int(EPOCH_SEC_SIZE * sampling_rate)
+        select_idx = select_idx[:-n_trims]
+        raw_ch = raw_ch_df.values[select_idx]
         n_epochs = len(raw_ch) / (EPOCH_SEC_SIZE * sampling_rate)
 
         # Get epochs and their corresponding labels
         x = np.asarray(np.split(raw_ch, n_epochs)).astype(np.float32)
-
         start_idx = 0
         end_idx = len(x) - 1
         select_idx = np.arange(start_idx, end_idx+1)

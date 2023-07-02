@@ -117,19 +117,12 @@
       cursor: pointer;
     }
 
-    .logo-banner {
-      height: 100px;
-      width: auto;
-      object-fit: contain;
-    }
-
     .logo-uit {
       margin-right: 20px;
     }
 
     .logo-uit,
-    .logo-httt,
-    .logo-dhqg {
+    .logo-httt {
       height: 70px;
       width: auto;
       object-fit: contain;
@@ -142,7 +135,7 @@
     header {
       width: 100%;
       height: 80px;
-      background-color: #a4ebfd;
+      background-color: #eff8ff;
       position: fixed;
       top: 0;
       left: 0;
@@ -151,6 +144,7 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
+      /* border-bottom: 2px solid rgb(55, 54, 54); */
     }
 
     .header-container {
@@ -159,21 +153,23 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      color: #4415ee;
     }
 
     footer {
       width: 100%;
       height: 80px;
-      background-color: #a4ebfd;
+      background-color: #eff8ff;
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
+      /* border-top: 2px solid rgb(55, 54, 54); */
     }
 
     .footer-container {
@@ -187,15 +183,18 @@
 
     .info-uni1 {
       font-size: 18px;
+      color: #3c60a9;
     }
 
     .info-name,
     .info-uni2 {
       font-size: 18px;
+      color: #3c60a9;
     }
 
     .info-uni3 {
       font-size: 16px;
+      color: #3c60a9;
     }
 
     .info-student {
@@ -207,11 +206,14 @@
     i {
       margin-right: 10px;
       font-size: 18px;
+      color: #3c60a9;
     }
 
     .student-name {
       display: flex;
       flex-direction: column;
+      color: #3c60a9;
+      margin-top: -3px;
     }
 
     .info-ths {
@@ -219,11 +221,18 @@
       flex-direction: row;
       margin-bottom: 23px;
       align-items: start;
+      color: #3c60a9;
     }
 
     .info-ths-name {
       font-size: 17px;
       margin-top: -3px;
+      color: #3c60a9;
+    }
+
+    .time {
+      margin-top: 10px;
+      line-height: 24px;
     }
   </style>
 </head>
@@ -236,9 +245,8 @@
         <img class="logo-httt" src="/static/logo/Logo-Khoa-HTTT.png" alt="">
       </div>
       <div class="info-uni">
-        <p class="info-uni1">KHÓA LUẬN TỐT NGHIỆP</p>
-        <p class="info-uni2">KHOA HỆ THỐNG THÔNG TIN</p>
         <p class="info-uni3">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN - ĐHQG-HCM</p>
+        <p class="info-uni2"><b>KHOA HỆ THỐNG THÔNG TIN</b></p>
       </div>
     </div>
   </header>
@@ -276,7 +284,7 @@
   <footer>
     <div class="footer-container">
       <div class="info-student">
-        <i>Đề tài:</i>
+        <i>Đề tài Khóa luận tốt nghiệp:</i>
         <div class="student-name">
           <p class="info-name">PHÂN LỚP GIAI ĐOẠN GIẤC NGỦ
             <br>DỰA TRÊN PHƯƠNG PHÁP HỌC SÂU
@@ -286,15 +294,29 @@
       <div class="info-student">
         <i>Sinh viên thực hiện:</i>
         <div class="student-name">
-          <p class="info-name">Tần Thùy Trang</p>
-          <p class="info-name">Nguyễn Thị Hồng</p>
+          <p class="info-name">Tần Thùy Trang - 19532384</p>
+          <p class="info-name">Nguyễn Thị Hồng - 19521550</p>
         </div>
       </div>
-      <div class="info-ths">
+      <!-- <div class="info-ths">
         <i>GVHD:</i>
         <p class="info-ths-name">ThS. Dương Phi Long</p>
+        <i class="time">Thời gian thực hiện: 01 - 07/2023</i>
+      </div> -->
+      <div class="info-student">
+        <div>
+
+          <i>Giảng viên hướng dẫn:</i>
+          <br>
+          <i class="time">Thời gian thực hiện:</i>
+        </div>
+        <div class="student-name">
+          <p class="info-name">ThS. Dương Phi Long</p>
+          <p class="info-name">01 - 07/2023</p>
+        </div>
       </div>
     </div>
+
   </footer>
 </body>
 
