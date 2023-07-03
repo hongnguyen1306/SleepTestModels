@@ -278,11 +278,11 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
         raw_ch = raw_ch_df.values[select_idx]
 
         
-        # if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
-        #     raise Exception("Something wrong")
-        n_trims = len(select_idx) % int(EPOCH_SEC_SIZE * sampling_rate)
-        select_idx = select_idx[:-n_trims]
-        raw_ch = raw_ch_df.values[select_idx]
+        if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
+            n_trims = len(select_idx) % int(EPOCH_SEC_SIZE * sampling_rate)
+            select_idx = select_idx[:-n_trims]
+            raw_ch = raw_ch_df.values[select_idx]
+
         n_epochs = len(raw_ch) / (EPOCH_SEC_SIZE * sampling_rate)
 
         # Get epochs and their corresponding labels
