@@ -215,18 +215,14 @@ def load_model_Tiny(data_path, base_path, act_func, labels=True):
     f1_score = 0
     acc = 0
     preds = np.array([])
-    print("Tiny load...1")
+    print("Tiny load...")
 
     if act_func == 'ReLU':
         model_path = "input/tiny81.9ReLU"
     else:
         model_path = "input/BestModelGELU"
 
-    print("Tiny load...2")
-    
-
     print("model_path ", model_path)
-    print("Tiny load...3")
 
     if labels==True:
         acc, f1_score, preds = predict_tiny(
@@ -288,12 +284,12 @@ def main():
     # test_dl = data_generator(str(os.path.join(base_path, "data/test_data.pt")))
 
 
-    val_folder = "/home/rosa/TestModels/Tel_test_npz"
+    val_folder = "/home/rosa/data_test/train"
     for test_npz_file in os.listdir(val_folder):
         if test_npz_file.endswith('.npz'):
             test_npz_path = os.path.join(val_folder, test_npz_file)
             generate_withlabels(base_path, test_npz_path)
-            test_pt = data_generator(str(os.path.join(base_path, "test_data.pt")), labels=True)
+            test_pt = data_generator(str(os.path.join(base_path, "data/test_data.pt")), labels=True)
 
             # print("\n*****    ReLU    ******")
             loss_TS, acc_TS, outs_TS, trues = load_model_TCC(test_pt, base_path, method='TS', act_func='ReLU')
