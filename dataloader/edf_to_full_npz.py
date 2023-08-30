@@ -3,8 +3,6 @@ import glob
 import math
 import ntpath
 import os
-import shutil
-import urllib.request
 import urllib.parse
 import urllib.error
 import urllib.request
@@ -82,9 +80,10 @@ def EdfToFullNpz(base_path, data_dir):
     for i in range(len(psg_fnames)):
         raw = read_raw_edf(psg_fnames[i], preload=True, stim_channel=None)
         sampling_rate = raw.info['sfreq']
-        raw_ch_df = raw.to_data_frame(scaling_time=100.0)[select_ch]
+        raw_ch_df = raw.to_data_frame()[select_ch]
         raw_ch_df = raw_ch_df.to_frame()
         raw_ch_df.set_index(np.arange(len(raw_ch_df)))
+
 
         # Get raw header
         f = open(psg_fnames[i], 'r', encoding='iso-8859-1')

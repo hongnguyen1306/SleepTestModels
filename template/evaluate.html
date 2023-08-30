@@ -295,10 +295,7 @@
         <label for="select-model">Chọn mô hình</label>
         <form name="select-model" id="select-model">
             <input type="checkbox" name="model" id="modelTrue" value=0 onchange="updateChart()">Nhãn đúng</input>
-            <input type="checkbox" name="model" id="modelAttn" value=1 onchange="updateChart()">AttnSleep</input>
             <input type="checkbox" name="model" id="modelCa-tcc" value=2 onchange="updateChart()">CA-TCC</input>
-            <input type="checkbox" name="model" id="modelDeepSleep" value=3
-                onchange="updateChart()">DeepSleepNet</input>
             <input type="checkbox" name="model" id="modelTs-tcc" value=4 onchange="updateChart()">TS-TCC</input>
             <input type="checkbox" name="model" id="modelTiny" value=5 onchange="updateChart()">TinySleepNet</input>
             <input type="checkbox" name="model" id="modelTS_GE" value=6 onchange="updateChart()">TS-TCC GELU</input>
@@ -426,8 +423,6 @@
         const labelColors = {
             'TS-TCC': 'blue',
             'CA-TCC': 'green',
-            'AttnSleep': 'orange',
-            'DeepSleepNet': 'aqua',
             'TinySleepNet': 'yellow',
             'TS-TCC GELU': 'lime',
             'CA-TCC GELU': 'maroon',

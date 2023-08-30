@@ -317,12 +317,8 @@
         <div class="label-container">
             <div class="label-column">
                 {% for method, outs in results.items() %}
-                {% if method == "outs_deepsleep" and method != "true_label": %}
-                <div class="label predicted-label"> DeepSleepNet: {{ outs }}</div>
                 {% elif method == "outs_tiny_ReLU" and method != "true_label": %}
                 <div class="label predicted-label">TinySleepNet : {{ outs }}</div>
-                {% elif method == "outs_attn" and method != "true_label": %}
-                <div class="label predicted-label">AttnSleep : {{ outs }}</div>
                 {% elif method == "TS-TCC" and method != "true_label": %}
                 <div class="label predicted-label">TS-TCC: {{ outs }}</div>
                 {% elif method == "CA-TCC" and method != "true_label": %}

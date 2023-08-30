@@ -1,5 +1,5 @@
 import glob
-from flask import Flask, request, render_template, make_response, jsonify
+from flask import Flask, request, render_template, jsonify
 import json
 import os
 import mne
@@ -9,9 +9,8 @@ import matplotlib
 matplotlib.use('Agg')
 import threading
 from dataloader.generate import generate_nolabels, generate_withlabels
-from main import load_model_TCC, load_model_Attn, load_model_Tiny, load_model_Deepsleep
+from main import load_model_TCC, load_model_Tiny
 from dataloader.dataloader_pytorch import data_generator
-from dataloader.edf_to_npz import EdfToNpz, EdfToNpz_NoLabels
 from dataloader.edf_to_full_npz import EdfToFullNpz, EdfToFullNpz_NoLabels
 
 
@@ -63,10 +62,7 @@ def predict():
 
     total_loss, total_acc_TS, outs_TS, trgs = load_model_TCC(test_dl, base_path, method='TS', act_func='GELU', labels=False)
     total_loss, total_acc_CA, outs_CA, trgs = load_model_TCC(test_dl, base_path, method='CA', act_func='GELU', labels=False)
-    
-    acc_Attn, outs_attn, trgs = load_model_Attn(test_dl, base_path, labels=False)
     acc, f1_score, outs_tiny = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=False)
-    acc_deepsleep, f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=False)
     
     psg_file = glob.glob(os.path.join(base_path, data_path, "*PSG.edf"))
     raw = mne.io.read_raw_edf(psg_file[0])
@@ -96,16 +92,12 @@ def predict():
         trgs_labels = [stage_mapping[trg] for trg in trgs]
         outs_TS_labels = [stage_mapping[out] for out in outs_TS]
         outs_CA_labels = [stage_mapping[out] for out in outs_CA]
-        outs_attn_labels = [stage_mapping[out] for out in outs_attn]
         outs_tiny_ReLU_labels = [stage_mapping[out] for out in outs_tiny]
-        outs_deepsleep_labels = [stage_mapping[out] for out in outs_deepsleep]
 
         results = {
             'TS-TCC': outs_TS_labels,
             'CA-TCC': outs_CA_labels,
-            'outs_attn': outs_attn_labels,
             'outs_tiny_ReLU': outs_tiny_ReLU_labels,
-            'outs_deepsleep': outs_deepsleep_labels
         }
 
         predicts = {
@@ -124,10 +116,8 @@ def predict():
                 'TS-TCC': outs_TS.tolist(),
                 'CA-TCC': outs_CA.tolist(),
                 'CA-TCC_gelu': [],
-                'outs_attn': outs_attn.tolist(),
                 'outs_tiny_ReLU': outs_tiny.tolist(),
                 'outs_tiny_GELU': [],
-                'outs_deepsleep': outs_deepsleep.tolist(),
                 'inforRaw_x': x.tolist(),
                 'inforRaw_y': y.tolist(),
 
@@ -167,10 +157,8 @@ def evaluate():
     total_loss, gelu_acc_TS, outs_TS_G, trgs  = load_model_TCC(test_pt, base_path, method='TS', act_func='GELU')
     total_loss, gelu_acc_CA, outs_CA_G, trgs  = load_model_TCC(test_pt, base_path, method='CA', act_func='GELU')
     
-    total_acc_Attn, outs_attn , trgs = load_model_Attn(test_pt, base_path, labels=True)
     relu_acc_tiny, f1_tiny_relu, outs_tiny_ReLU = load_model_Tiny(test_npz, base_path, act_func = 'ReLU', labels=True)
     gelu_acc_tiny, f1_tiny_gelu, outs_tiny_GELU = load_model_Tiny(test_npz, base_path, act_func = 'GELU', labels=True)
-    total_acc_deepsleep, total_f1_deepsleep, outs_deepsleep = load_model_Deepsleep(test_npz, base_path, labels=True)
     
     results = {}
 
@@ -205,10 +193,8 @@ def evaluate():
         outs_TS_labels = [stage_mapping[out] for out in outs_TS]
         outs_CA_labels = [stage_mapping[out] for out in outs_CA]
         outs_CA_G_labels = [stage_mapping[out] for out in outs_CA_G]
-        outs_attn_labels = [stage_mapping[out] for out in outs_attn]
         outs_tiny_ReLU_labels = [stage_mapping[out] for out in outs_tiny_ReLU]
         outs_tiny_GELU_labels = [stage_mapping[out] for out in outs_tiny_ReLU]
-        outs_deepsleep_labels = [stage_mapping[out] for out in outs_deepsleep]
 
         results = {
             'true_label': trgs_labels,
@@ -216,10 +202,8 @@ def evaluate():
             'TS-TCC': outs_TS_labels,
             'CA-TCC': outs_CA_labels,
             'CA-TCC_gelu': outs_CA_G_labels,
-            'outs_attn': outs_attn_labels,
             'outs_tiny_ReLU': outs_tiny_ReLU_labels,
             'outs_tiny_GELU': outs_tiny_GELU_labels,
-            'outs_deepsleep': outs_deepsleep_labels
         }
 
         predicts = {
@@ -238,10 +222,8 @@ def evaluate():
             'TS-TCC': outs_TS.tolist(),
             'CA-TCC': outs_CA.tolist(),
             'CA-TCC_gelu': outs_CA_G.tolist(),
-            'outs_attn': outs_attn.tolist(),
             'outs_tiny_ReLU': outs_tiny_ReLU.tolist(),
             'outs_tiny_GELU': outs_tiny_GELU.tolist(),
-            'outs_deepsleep': outs_deepsleep.tolist(),
             'inforRaw_x': x.tolist(),
             'inforRaw_y': y.tolist(),
         }
@@ -251,10 +233,8 @@ def evaluate():
             'CA-TCC': relu_acc_CA,
             'TS-TCC GELU': relu_acc_TS,
             'CA-TCC GELU': gelu_acc_CA,
-            'AttnSleep': total_acc_Attn,
             'TinySleepNet': relu_acc_tiny,
             'TinySleepNet GELU': gelu_acc_tiny,
-            'DeepSleepNet': total_acc_deepsleep,
         }
 
             ###==================================================================================
@@ -274,10 +254,8 @@ def update_chart():
     outs_TS = predicts['TS-TCC']
     outs_CA = predicts['CA-TCC']
     outs_CA_G = predicts['CA-TCC_gelu']
-    outs_attn = predicts['outs_attn']
     outs_tiny_ReLU = predicts['outs_tiny_ReLU']
     outs_tiny_GELU = predicts['outs_tiny_GELU']
-    outs_deepsleep = predicts['outs_deepsleep']
 
     labels = ['W', 'N1', 'N2', 'N3', 'REM']
 
@@ -301,21 +279,6 @@ def update_chart():
                     temp[index]='REM'
             initial_chart_data["Nhãn đúng"] = temp
         elif value == "1":
-            temp = outs_attn
-            for index in range(0,len(temp)):
-                if temp[index]==0:
-                    temp[index]='W'
-                elif temp[index]==1:
-                    temp[index]='N1'
-                elif temp[index]==2:
-                    temp[index]='N2'
-                elif temp[index]==3:
-                    temp[index]='N3'
-                elif temp[index]==4:
-                    temp[index]='REM'
-
-            initial_chart_data["AttnSleep"] = temp
-        elif value == "2":
             temp = outs_CA
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -330,21 +293,7 @@ def update_chart():
                     temp[index]='REM'
 
             initial_chart_data["CA-TCC"] = temp
-        elif value == "3":
-            temp = outs_deepsleep
-            for index in range(0,len(temp)):
-                if temp[index]==0:
-                    temp[index]='W'
-                elif temp[index]==1:
-                    temp[index]='N1'
-                elif temp[index]==2:
-                    temp[index]='N2'
-                elif temp[index]==3:
-                    temp[index]='N3'
-                elif temp[index]==4:
-                    temp[index]='REM'
-            initial_chart_data["DeepSleepNet"] = temp
-        elif value == "4":
+        elif value == "2":
             temp = outs_TS
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -358,7 +307,7 @@ def update_chart():
                 elif temp[index]==4:
                     temp[index]='REM'
             initial_chart_data["TS-TCC"] = temp
-        elif value == "5":
+        elif value == "3":
             temp = outs_tiny_ReLU
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -372,7 +321,7 @@ def update_chart():
                 elif temp[index]==4:
                     temp[index]='REM'
             initial_chart_data["TinySleepNet"] = temp
-        elif value == "6":
+        elif value == "4":
             temp = outs_TS_G
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -386,7 +335,7 @@ def update_chart():
                 elif temp[index]==4:
                     temp[index]='REM'
             initial_chart_data["TS-TCC GELU"] = temp
-        elif value == "7":
+        elif value == "5":
             temp = outs_CA_G
             for index in range(0,len(temp)):
                 if temp[index]==0:
@@ -400,7 +349,7 @@ def update_chart():
                 elif temp[index]==4:
                     temp[index]='REM'
             initial_chart_data["CA-TCC GELU"] = temp
-        elif value == "8":
+        elif value == "6":
             temp = outs_tiny_GELU
             for index in range(0,len(temp)):
                 if temp[index]==0:
