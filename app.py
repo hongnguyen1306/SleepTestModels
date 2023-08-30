@@ -1,18 +1,12 @@
 import glob
 from flask import Flask, request, render_template, make_response, jsonify
-# from flask_socketio import SocketIO, emit
 import json
 import os
+import mne
 import numpy as np
-import pandas as pd
-from datetime import datetime
 from werkzeug.utils import secure_filename
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import random
-import string
-import mne
 import threading
 from dataloader.generate import generate_nolabels, generate_withlabels
 from main import load_model_TCC, load_model_Attn, load_model_Tiny, load_model_Deepsleep
