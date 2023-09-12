@@ -12,3 +12,4 @@ tensorboardX==2.2
 scikit-learn==0.19.2
 jinja2==2.10.1
 markupsafe==1.1.0
+itsdangerous==2.1.2
