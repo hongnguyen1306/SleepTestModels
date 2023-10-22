@@ -19,7 +19,6 @@ from mne.io import read_raw_edf
 from dataloader import dhedfreader
 
 
-
 # Label values
 W = 0
 N1 = 1
@@ -62,7 +61,7 @@ EPOCH_SEC_SIZE = 30
 
 def EdfToNpz(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path, "data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")
@@ -123,10 +122,10 @@ def EdfToNpz(base_path, data_dir):
                 if duration_sec % EPOCH_SEC_SIZE != 0:
                     raise Exception("Something wrong")
                 duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
-                label_epoch = np.ones(duration_epoch, dtype=np.int) * label
+                label_epoch = np.ones(duration_epoch, dtype=np.int64) * label
                 labels.append(label_epoch)
                 idx = int(onset_sec * sampling_rate) + \
-                    np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    np.arange(duration_sec * sampling_rate, dtype=np.int64)
                 label_idx.append(idx)
 
                 print("Include onset:{}, duration:{}, label:{} ({})".format(
@@ -134,7 +133,7 @@ def EdfToNpz(base_path, data_dir):
                 ))
             else:
                 idx = int(onset_sec * sampling_rate) + \
-                    np.arange(duration_sec * sampling_rate, dtype=np.int)
+                    np.arange(duration_sec * sampling_rate, dtype=np.int64)
                 remove_idx.append(idx)
 
                 print("Remove onset:{}, duration:{}, label:{} ({})".format(
@@ -197,12 +196,12 @@ def EdfToNpz(base_path, data_dir):
         #         start_idx = 0
         #     if end_idx >= len(y):
         #         end_idx = len(y) - 1
-        
+
         select_idx = np.arange(start_idx, end_idx)
         print("select_idx ", select_idx)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
-        print("***** edfnpz x  ", x )
+        print("***** edfnpz x  ", x)
         y = y[select_idx]
         print("y end ", y)
         print(("Data after selection: {}, {}".format(x.shape, y.shape)))
@@ -228,7 +227,7 @@ def EdfToNpz(base_path, data_dir):
 
 def EdfToNpz_NoLabels(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path, "data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")

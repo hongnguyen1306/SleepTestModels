@@ -17,7 +17,6 @@ from mne.io import read_raw_edf
 from dataloader import dhedfreader
 
 
-
 # Label values
 W = 0
 N1 = 1
@@ -60,7 +59,7 @@ EPOCH_SEC_SIZE = 30
 
 def EdfToFullNpz(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path, "data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")
@@ -84,7 +83,6 @@ def EdfToFullNpz(base_path, data_dir):
         raw_ch_df = raw_ch_df.to_frame()
         raw_ch_df.set_index(np.arange(len(raw_ch_df)))
 
-
         # Get raw header
         f = open(psg_fnames[i], 'r', encoding='iso-8859-1')
         reader_raw = dhedfreader.BaseEDFReader(f)
@@ -103,7 +101,7 @@ def EdfToFullNpz(base_path, data_dir):
         f.close()
         ann_start_dt = datetime.strptime(
             h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
-        
+
         # Assert that raw and annotation files start at the same time
         assert raw_start_dt == ann_start_dt
 
@@ -120,10 +118,11 @@ def EdfToFullNpz(base_path, data_dir):
                     if duration_sec % EPOCH_SEC_SIZE != 0:
                         raise Exception("Something wrong")
                     duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
-                    label_epoch = np.ones(duration_epoch, dtype=np.int) * label
+                    label_epoch = np.ones(
+                        duration_epoch, dtype=np.int64) * label
                     labels.append(label_epoch)
                     idx = int(onset_sec * sampling_rate) + \
-                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                        np.arange(duration_sec * sampling_rate, dtype=np.int64)
                     label_idx.append(idx)
 
                     print("Include onset:{}, duration:{}, label:{} ({})".format(
@@ -131,7 +130,7 @@ def EdfToFullNpz(base_path, data_dir):
                     ))
                 else:
                     idx = int(onset_sec * sampling_rate) + \
-                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                        np.arange(duration_sec * sampling_rate, dtype=np.int64)
                     remove_idx.append(idx)
 
                     print("Remove onset:{}, duration:{}, label:{} ({})".format(
@@ -146,10 +145,11 @@ def EdfToFullNpz(base_path, data_dir):
                     if duration_sec % EPOCH_SEC_SIZE != 0:
                         raise Exception("Something wrong")
                     duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
-                    label_epoch = np.ones(duration_epoch, dtype=np.int) * label
+                    label_epoch = np.ones(
+                        duration_epoch, dtype=np.int64) * label
                     labels.append(label_epoch)
                     idx = int(onset_sec * sampling_rate) + \
-                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                        np.arange(duration_sec * sampling_rate, dtype=np.int64)
                     label_idx.append(idx)
 
                     print("Include onset:{}, duration:{}, label:{} ({})".format(
@@ -157,7 +157,7 @@ def EdfToFullNpz(base_path, data_dir):
                     ))
                 else:
                     idx = int(onset_sec * sampling_rate) + \
-                        np.arange(duration_sec * sampling_rate, dtype=np.int)
+                        np.arange(duration_sec * sampling_rate, dtype=np.int64)
                     remove_idx.append(idx)
 
                     print("Remove onset:{}, duration:{}, label:{} ({})".format(
@@ -222,7 +222,7 @@ def EdfToFullNpz(base_path, data_dir):
                 start_idx = 0
             if end_idx >= len(y):
                 end_idx = len(y) - 1
-        
+
         select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
@@ -245,7 +245,7 @@ def EdfToFullNpz(base_path, data_dir):
 
 def EdfToFullNpz_NoLabels(base_path, data_dir):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path,"data")),
+    parser.add_argument("--output_dir", type=str, default=str(os.path.join(base_path, "data")),
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")
@@ -276,7 +276,6 @@ def EdfToFullNpz_NoLabels(base_path, data_dir):
         select_idx = np.arange(len(raw_ch_df))
         raw_ch = raw_ch_df.values[select_idx]
 
-        
         if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
             n_trims = len(select_idx) % int(EPOCH_SEC_SIZE * sampling_rate)
             select_idx = select_idx[:-n_trims]
